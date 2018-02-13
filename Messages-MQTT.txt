@@ -12,7 +12,7 @@ MQTT channels use single character, base 58 elements
 4 levels (c) = 195,112 devices
 5 levels (d) = 11,316,496 devices
 
-9 character channels support over 10,000,000 devices in a single deployment
+9 character topic string supports over 10,000,000 devices in a single deployment
 
 Roles:
 - Coordinator: Edge device which communicates between the deployment and the platform
