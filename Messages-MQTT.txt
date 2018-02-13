@@ -1,0 +1,268 @@
+Platform: central IOT backend solution. Can be cloud, virtual or physical.
+Deployment: IOT implemntation (smart building, industrial process etc.)
+Device: a Thing in a deployment, typically connects to sensors and/or actuators
+
+
+MQTT channels use single character, base 58 elements
+
+?/a/b/c/d -- ? = message type
+
+2 levels (a) = 58 devices
+3 levels (b) = 3,364 devices
+4 levels (c) = 195,112 devices
+5 levels (d) = 11,316,496 devices
+
+9 character channels support over 10,000,000 devices in a single deployment
+
+Roles:
+- Coordinator: Edge device which communicates between the deployment and the platform
+- Aggregator: Device which receives data from a number of sensors and processes it in some way (e.g. calcuate min/max readings across multiple devices)
+                Sends output to another Aggregator for additional processing, or to the platform via the coordinator
+- Controller: Controls one or more actuators 
+- Broker: manages multiple controllers, e.g. each controller along an assembly line is managed by the same broker
+- Commander: a local "mini" platform which communicates with specified aggregators and/oe brokers
+
+each role has associated "handler" files to implement the required functionality which can be pushed to the relevant device.
+In addition, additional handler files can implement specific functionality (e.g. an Aggregator device will have particular functionality for each aggregation operation)
+Messaging:
+Southbound: from Platform to Deployment
+Northbound: from Deployment to platform
+
+To simplify implementations, wildcards are not supported in MQTT channels. However REST parameters are supported
+Southbound messages/channels start with an uppercase letter
+Northbound messages/channels start with a lowercase letter
+In order to minimise the size of messages, paths are hierarchical with single character base58 (to improve readability) elements
+e.g. a health message from a device could have the following path/channel "h/1/2/5/B"
+
+Coordinator Synchronisation
+- "Z": Between active and "hot-swap" Coordinators, ensures one, and only one, active coordinator per deployment
+
+Health message:
+- "H": Platform requests the health status of a particular device in the deployment
+- "h": device sends health information to the deployment
+-- -- -- move roles when device is short on resources
+
+Error message:
+- "E": Error message from the Platform to a device in a deployment. E.g. Aggregation data is invalid
+- "e": Error message from a device to the platform. E.g. a device has not forwarded sensor data to the aggregator
+-- -- -- ensure required aggregator and broker roles are active
+-- -- -- move roles when device is unavailable
+
+Response message:
+- "R": Response from the platform - platform has responded to a query from the deployment (requires "smart" roles)
+- "r": device responds to the platform - e.g. confirm a role has been moved to a device
+
+Event message:
+- "V": platform notifies deployment/device of an event..??
+- "v": device notifies platform of an event (e.g. temperature exceeds predefined limit)
+"v" paths include a type as the second element and priority as the third element(e.g. "v/e/1" is a high priority error)
+
+Config message:
+- "C": Configuration data for the device specified in the rest of the path
+- "c": Configuration data from the device to the platform
+
+Query message:
+- "Q": a query from the platform to the device specified in the remainder of the path - to support additional functionality
+- "q": a query from a device - to support additional functionality
+
+Execute message:
+- "X": Platform requests the execution of a specified command on a device (via one or more chained brokers)
+- "x": Commander requests the execuyion of a specified command on a device (via a broker)
+
+Aggregation message:
+- "a","aggregation output from an aggregator, can be sent via the coordinator, or as an input to another aggregator
+{
+    "t":<timestamp>,
+    [
+        "1": first data element (e.g. average (mean) value)
+        "2": second data element (e.g. max)
+        "D": ["raw" data (from input sensors and/aggregators), if required]
+    ]
+}
+command:
+{
+    "p":"the path to the device",
+    "c":"the id of the command to execute,
+    "p":[
+        {"p1":"the first parameter"},
+        ...
+        {"pn":"the nth parameter}
+
+    ]
+}
+the path is included so that multiple brokers can be used, e.g.
+"p" = "x/5/V/6/4" (device path)
+
+coordinator publishes on "x/5"
+subscribed broker publishes on "x/5/V"
+subscribed broker publishes on "x/5/V/6"
+subscribed broker publishes on "x/5/V/6/4"
+device executes command
+
+
+Orphaned devices (e.g. where the platform data has become corrupted and the deployment is no longer defined) can recreate the relevant deployment based on their configuration file
+Below is a typical device configuration file, with comments to aid interpretation
+
+{
+    "device": {
+        "hiotId": "ABCDEF1234567890", //unique identifier for the device
+        "name": "basic sensor/controller device", //for recreating the deployment
+        "description": "This is the bottom level device", //for recreating the deployment
+        "devicePath": "1/1/1/1/1/1/1/3/5/6" // comms with the device will use this path
+    },
+    "roleChannels": {
+        "broker": {
+            "_id": "59df282a3a092a2b805b6567", // unique id
+            "deployment": "597f3056ef66be0648ef5bd3", //useful to reinstate orphaned devices
+            "description": "Office B14 - Research Meeting Room 2 - HVAC and Lighting", //for orphaned devices
+            "name": "first broker", //for orphaned devices
+            "handler": "59bfda6ed7649a3070551ad9", //unique id of the associated handler file
+            "upMqttServers": [{ // an array of MQTT brokers for pub/sub - failover from first to subsequent
+                "ip": "127.0.0.1",
+                "port": "1883"
+            }, {
+                "ip": "127.0.0.1",
+                "port": "2881"
+            }],
+            "active": true,
+            "__v": 0,
+            "myPaths": [{  //brokers can redirect path (from in to out) - normally the "out" path is the "in" path with an additional element
+                "in": "1/2/3",
+                "out": "1/2/f1",
+                "_id": "59df282a3a092a2b805b656a"
+            }, {
+                "in": "1/2/3/4/6/8/#",
+                "out": "3/3/3/4/",
+                "_id": "59df282a3a092a2b805b6569"
+            }, {
+                "in": "1/9/f1",
+                "out": "1/2/3/4/5/6/7/8/9f1",
+                "_id": "59df282a3a092a2b805b6568"
+            }, {
+                "in": "1/2/3/4/5/6/7/8/9f1",
+                "out": "1/5/f1",
+                "_id": "59df282a3a092a2b805b6568"
+            }, {
+                "in": "1/2/f1",
+                "out": "1/4/f1",
+                "_id": "59df282a3a092a2b805b6568"
+            }, {
+                "in": "1/4/f1",
+                "out": "1/1/f1",
+                "_id": "59df282a3a092a2b805b6568"
+            }]
+        },
+        "coordinator": {
+            "m2mMqttport": 1882,
+            "m2mMqttServer": "localhost",
+            "commanderPaths": [{ //commanders will publish any commands on the paths below, so that the coordinator (and platform) are aware of executed commands/updated statuses
+                "id": "commander1",
+                "paths": [
+                    "c/1/1/f1",
+                    "c/1/1/f2"
+                ]
+            }]
+        },
+        "controller": [{
+            "_id": "59c393ee54674b1ce4982a69",
+            "description": "Lighting controller - First Floor",
+            "name": "LWRF - F1",
+            "__v": 0,
+            "deployment": "597f3056ef66be0648ef5bd3",
+            "controllerId": "cont1203",
+            "channel": "x/1/1/f1",
+            "handler": "59bfda6ed7649a3070551ad9",
+            "commands": { //commands are defined here
+                "1": {
+                    "name": "porch light on/off", //description of the command (for commanders to use)
+                    "e": "/home/pi/433Utils/RPi_utils/codesend 123456" // executable to run
+                },
+                "2": {
+                    "name": "garden light on/off",
+                    "e": "/home/pi/433Utils/RPi_utils/codesend 654321"
+                },
+                "3": {
+                    "name": "kitchen lights on",
+                    "e": "/home/pi/433Utils/lightwave_rf/send R1S1D1 1 1"
+                },
+                "4": {
+                    "name": "kitchen lights off",
+                    "e": "/home/pi/433Utils/lightwave_rf/send R1S1D1 1 0"
+                },
+                "5": {
+                    "name": "sitting room spots on",
+                    "e": "/home/pi/433Utils/lightwave_rf/send R2S2D1 1 1"
+                },
+                "6": {
+                    "name": "sitting room spots off",
+                    "e": "/home/pi/433Utils/lightwave_rf/send R2S2D1 1 0"
+                },
+                "7": {
+                    "name": "sitting room centre on",
+                    "e": "/home/pi/433Utils/lightwave_rf/send R2S1D1 1 1"
+                },
+                "8": {
+                    "name": "sitting room centre off",
+                    "e": "/home/pi/433Utils/lightwave_rf/send R2S1D1 1 0"
+                },
+                "9": {
+                    "name": "send to console",
+                    "e": "msg"
+
+                }
+            }
+        }],
+        "aggregator": [{
+            "_id": "59db76cdccc548be30e5249f",
+            "handler": "59bfdae2d7649a3070551ade",
+            "name": "Aggregator1",
+            "channel": "a/1",
+            "description": "some random aggregator",
+            "poll": 18000,
+            "deployment": "597f3056ef66be0648ef5bd3",
+            "active": true,
+            "__v": 0,
+            "topics": ["s/1/2/3/4/5/6/7/8/8/9/9/9/9", "s/4/5/22", "s/3/4/5"] //the device will subscribe to each of these topics and process them as part of this aggregator
+        }, {
+            "_id": "59db76cdccc548be30e5249a",
+            "handler": "59bfdae2d7649a3070551adb",
+            "name": "Aggregator2",
+            "channel": "a/2",
+            "description": "some random aggregator",
+            "poll": 60000,
+            "deployment": "597f3056ef66be0648ef5bd3",
+            "active": true,
+            "__v": 0,
+            "topics": ["s/1/2/3/4/5/6/7/8/8/9/9/9/9", "s/4/5/22", "a/1/2/3/4/5"]
+        }],
+        "sensor": [{ // a physically connected or remote sensor
+            "_id": "59db98407e3a9fb060064ebf",
+            "id": "sn1234",
+            "name": "first real sensor",
+            "channel": "s/1/2/3/4/5/6/7/8/8/9/9/9/9",
+            "description": "some random sensor",
+            "handler": "59db908c327a46cb841ac004", // implements the functionality to integrate with the sensor
+            "poll": 60000,
+            "config": {
+                "minValue": 1234,
+                "range": 100
+            },
+            "location": "59bfd3ba9db46f37b858ed29",
+            "active": true,
+            "__v": 0
+        }]
+    },
+    "moscaEnabled": true, //is mosca installed and enabled on this device (can move to Mosquitto/Hono)
+    "moscaPort": 1883,
+    "mqttServers": [{
+        "mqttServerIP": "127.0.0.1",
+        "mqttServerPort": "1883",
+        "priority": 1,
+        "_id": "59df294d3a092a2b805b6570"
+    }, {
+        "mqttServerIP": "10.0.0.1",
+        "mqttServerPort": "1883",
+        "priority": 1,
+        "_id": "59df294d3a092a2b805b656f"
+    }]
+}
