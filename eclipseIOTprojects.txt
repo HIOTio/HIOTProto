@@ -1,0 +1,22 @@
+** Kapua - Management 
+** Kura - underlying framework (Java)
+Leshan - CoAP
+hawkBit - roll out updates
+** hono - MQTT messaging - redefine channels 
+
+Paho - MQTT & MQTT-SN
+californium - CoAP in multiple languages
+Milo - industrial automation data standard
+Ponte - multiple protocols (MQTT, CoAP etc.) Multiple formats (JSON, XML etc.)
+Vorto - information models
+concierge - OSGi Core Specification R5
+NeoSCADA - SCADA
+tinydtls - DTLS
+edje - HAL
+Whiskers - SensorThings API
+Wakaama - LWM2M API
+Unide - PPMP protocol 
+ioFog - Fog computing layer
+Agile - h/w & s/w gateway
+ditto - digital twins
+4diac- industrial process measurement and control
