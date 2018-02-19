@@ -42,6 +42,9 @@ Health message:
 - "h": device sends health information to the deployment
 -- -- -- move roles when device is short on resources
 
+Handler messages:
+-- "N": platfrom pushes handler file to a device
+
 Error message:
 - "E": Error message from the Platform to a device in a deployment. E.g. Aggregation data is invalid
 - "e": Error message from a device to the platform. E.g. a device has not forwarded sensor data to the aggregator
