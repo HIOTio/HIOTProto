@@ -1,0 +1,51 @@
+- Introduction
+- Terminology
+-- Platform
+-- Deployment
+-- Message
+-- Network
+-- Topic
+-- "cloud" side (may be separate or consolidated)
+-- Platform
+-- UI
+-- Coordinator link 
+- "deployment" side
+-- devices amd roles
+--- base device
+--- aggragator
+--- sensor
+--- actuator/controller
+--- broker
+--- Coordinator
+-- Commander
+- Message Structure
+-- MQTT - and migratability
+-- Uppercase from Platform
+-- Lower case to(wards) platform
+-- Coordinator specific messages
+-- minimal size & maximum scalability
+-- topic hierarchy
+-- shared context (platform and device share config)
+-- no wildcards
+- Control messages
+-- Coordinator sync: Z Topic
+-- Device Config: C Topic
+-- Health Messages: H Topic
+-- Errpr Messages: E Topic
+- Operational Messages
+-- Sensor Readings: S Topic
+-- Execution commands: X Topic
+-- Aggregation Results: A topic
+-- Message brokering: B Topic
+- use cases 
+-- onboarding a device
+-- data aggregation
+--- excluding "raw" data
+--- including "raw" data
+-- command execution from platform
+-- command execution from commander
+-- updating "health" statistics
+-- "load-balancing" a deployment
+-- restoration in the event of a platform failure
+-- 
+
