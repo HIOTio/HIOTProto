@@ -325,14 +325,13 @@ identifier for that device (typically the MAC address of the active
 network interface).
 
 For example:
+
+Topic: "o",
+
 ```javascript
-> Topic: "o",
->
-> Message: {
->
-> "deviceID":""00-01-d3-33-76-9b"
->
-> }
+ Message: {
+    "deviceID":""00-01-d3-33-76-9b"
+ }
 ```
 All Aggregators subscribe to the On-boarding channel ("o") and upon
 receiving an On-boarding message will request a new device path from the
