@@ -623,8 +623,7 @@ interpretation
 "channel": "s/1/2/3/4/5/6/7/8/8/9/9/9/9", //publish data from this
 sensor on this topic
 
-"description": "just generate a random number from minValue to minValue
-+ range",
+"description": "just generate a random number from minValue to minValue + range",
 
 "handler": "59db908c327a46cb841ac004",
 
@@ -846,15 +845,15 @@ command:
 ```javascript
 {
 
-"c":"the id of the command to execute,
+"c":<the id of the command to execute>,
 
 "p":[
 
-{"p1":"the first parameter"},
+{"p1":<the first parameter>},
 
 ...
 
-{"pn":"the nth parameter}
+{"pn":<the nth parameter}
 
 ]
 
