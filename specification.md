@@ -241,7 +241,6 @@ component.
 All of the roles (and other device attributes) are controlled by
 device-specific configuration files which are managed cloud-side.
 
-<img src="./media/image2.png" width="601" height="361" />
 
 Message Structure
 =================
@@ -342,7 +341,9 @@ The Platform then publishes the new, unique Device ID on topic
 “O/&lt;agg-path&gt;”. On receipt, of the message, the aggregator
 forwards it on topic “o/&lt;deviceID&gt;”. Duplicate On-boarding message
 for the same device, i.e. from other Aggregators, are ignored.
+
 <img src="media/onboard.png">
+
 The new device then updates its configuration with the device path
 provided by the platform.
 
