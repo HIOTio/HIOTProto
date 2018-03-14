@@ -104,8 +104,8 @@ Platform refers to all cloud-side elements within IOT.
 ### Path
 
 Paths for part of each topic sent and received by a deployment. For
-example, a health message would take the form "h/&lt;device path&gt;",
-where &lt;device path&gt; is the unique path for the associated device.
+example, a health message would take the form "h/<device path>",
+where <device path> is the unique path for the associated device.
 
 Each role deployed to a device also has a unique path. For example, a
 physical device may have multiple sensors and/or controllers attached,
@@ -276,7 +276,7 @@ topic "h/1/2/5/B"
 
 -   5 levels ("?/a/b/c /d") = 11,316,496 devices and roles
 
-=&gt; a 9-character topic string can support over 10,000,000 devices and
+=> a 9-character topic string can support over 10,000,000 devices and
 roles in a single deployment.
 
 As the platform is responsible for maintaining the configuration of each
@@ -325,7 +325,7 @@ identifier for that device (typically the MAC address of the active
 network interface).
 
 For example:
-```json
+```javascript
 > Topic: "o",
 >
 > Message: {
@@ -336,12 +336,12 @@ For example:
 ```
 All Aggregators subscribe to the On-boarding channel ("o") and upon
 receiving an On-boarding message will request a new device path from the
-Platform by publishing on "o/&lt;agg-path&gt;" where, &lt;agg-path&gt;
+Platform by publishing on "o/<agg-path>" where, <agg-path>
 is the device ID of the aggregator.
 
 The Platform then publishes the new, unique Device ID on topic
-"O/&lt;agg-path&gt;". On receipt, of the message, the aggregator
-forwards it on topic "o/&lt;deviceID&gt;". Duplicate On-boarding message
+"O/<agg-path>". On receipt, of the message, the aggregator
+forwards it on topic "o/<deviceID>". Duplicate On-boarding message
 for the same device, i.e. from other Aggregators, are ignored.
 
 <img src="media/onboard.png">
@@ -352,11 +352,11 @@ provided by the platform.
 | Message sender and Purpose          | Path                       | Data                       |
 |-------------------------------------|----------------------------|----------------------------|
 | Device: Get a unique device path    | "o"                        | Unique device ID : String  |
-| Aggregator: Request a new device id | "o/&lt;first agg path&gt;" | Unique device ID: String   |
-| Platform: set device path           | "O/&lt;first agg path&gt;" | Unique device ID: String   
+| Aggregator: Request a new device id | "o/<first agg path>" | Unique device ID: String   |
+| Platform: set device path           | "O/<first agg path>" | Unique device ID: String   
                                                                                                 
                                                                     Unique device Path: String  |
-| Aggregator: set device path         | "O/&lt;device id&gt;"      | Unique device Path: String |
+| Aggregator: set device path         | "O/<device id>"      | Unique device Path: String |
 
 Once the device path has been set, the device can be managed and
 configured from the platform.
@@ -365,14 +365,14 @@ Device Config: C Topic
 ----------------------
 
 Device configuration is managed via the Platform through the use of
-message on the "C/&lt;path&gt;" and "c&lt;/path&gt;" topics. A new
+message on the "C/<path>" and "c</path>" topics. A new
 configuration can be pushed to a specific device from the platform by
-pubishing on "C/&lt;device path&gt;", where &lt;device path&gt; is the
+pubishing on "C/<device path>", where <device path> is the
 unique path for the relevant device (e.g. a device which has just been
 on-boarded).
 
 Once the device has applied the relevant configuration, it responds to
-the platform on topic "c/&lt;device path&gt;", with the updated
+the platform on topic "c/<device path>", with the updated
 configuration data. In the event that the platform has tried to
 configure an unsupported function (e.g. if the device is not fully HIP
 compatible, or does not support all roles), the unsupported functions
@@ -380,11 +380,11 @@ will be omitted from the device’s response.
 
 In both cases, the message structure is the same.
 
-Topic: "C/&lt;device path&gt;" or "c/&lt;device path&gt;"
-```json
+Topic: "C/<device path>" or "c/<device path>"
+```javascript
 Message: {
 
-&lt;configuration data as specified below&gt;
+<configuration data as specified below>
 
 }
 ```
@@ -402,38 +402,38 @@ the specified device, including any roles deployed to the device.
 |                                  | name                                                                | User friendly name for the device                                                                                                                                   |
 |                                  | description                                                         | A description of the device                                                                                                                                         |
 |                                  | devicePath                                                          | Unique path for the device topics                                                                                                                                   |
-| Device-&gt;MQTTServers           | Configuration data for any MQTT brokers that the device connects to |
-| Roles-&gt;Broker                 | An array of zero or more broker implementations                     |
-|                                  | \_id                                                                | Unique ID for the particular broker implementation                                                                                                                  |
+| Device->MQTTServers           | Configuration data for any MQTT brokers that the device connects to |
+| Roles->Broker                 | An array of zero or more broker implementations                     |
+|                                  | _id                                                                | Unique ID for the particular broker implementation                                                                                                                  |
 |                                  | path                                                                | Unique path for this implementation                                                                                                                                 |
 |                                  | deployment                                                          | Deployment ID - part of orphaned devices, discussed later                                                                                                           |
 |                                  | description                                                         | User friendly description of what the broker does                                                                                                                   |
 |                                  | name                                                                | User friendly name for the implementation                                                                                                                           |
 |                                  | handler                                                             | Handler file for required functionality                                                                                                                             |
 |                                  | active                                                              | Boolean – is the broker implementation active?                                                                                                                      |
-| Role-&gt;Coordinator             | m2mMqttport                                                         | Port number for the Coordinator Link on the Platform                                                                                                                |
+| Role->Coordinator             | m2mMqttport                                                         | Port number for the Coordinator Link on the Platform                                                                                                                |
 |                                  | m2mMqttServer                                                       | IP Address or DNS name of the Coordinator Link                                                                                                                      |
 |                                  | active                                                              | Boolean - Is this the active Coordinator?                                                                                                                           |
 |                                  | auth                                                                | Object defining the credentials for the Coordinator Link                                                                                                            |
-| Role-&gt;Controller              | An array of zero or more controllers installed on the device        |
+| Role->Controller              | An array of zero or more controllers installed on the device        |
 |                                  | controllerId                                                        | Unique ID for this controller                                                                                                                                       |
 |                                  | description                                                         | User friendly description for the controller                                                                                                                        |
 |                                  | name                                                                | User friendly name for the controller                                                                                                                               |
 |                                  | deployment                                                          | Deployment ID - part of orphaned devices, discussed later                                                                                                           |
 |                                  | channel                                                             | Unique topic for this controller                                                                                                                                    |
 |                                  | handler                                                             | Handler file to implement required functionality/integration                                                                                                        |
-| Role-&gt;Controller-&gt;Commands | An array of commands for this controller                            |
+| Role->Controller->Commands | An array of commands for this controller                            |
 |                                  | c                                                                   | Unique id for the command, usually just an incrementing int                                                                                                         |
 |                                  | n                                                                   | User friendly name for the command                                                                                                                                  |
 |                                  | E                                                                   | Command to execute                                                                                                                                                  |
 |                                  | p                                                                   | Array of parameters                                                                                                                                                 |
-|                                  | p-&gt;p                                                             | ID of the parameter                                                                                                                                                 |
-|                                  | p-&gt;datatype                                                      | Type name of the expected datatype                                                                                                                                  |
-|                                  | p-&gt;min                                                           | Min value (numeric), length (text) or size (other) for the parameter                                                                                                |
-|                                  | p-&gt;max                                                           | Max value, length or size for the parameter                                                                                                                         |
-|                                  | p-&gt;required                                                      | Boolean, is this a required parameter                                                                                                                               |
-| Role-&gt;Aggregator              | An array of zero or more aggregators installed on the device        |
-|                                  | \_id                                                                | Unique ID for the aggregator                                                                                                                                        |
+|                                  | p->p                                                             | ID of the parameter                                                                                                                                                 |
+|                                  | p->datatype                                                      | Type name of the expected datatype                                                                                                                                  |
+|                                  | p->min                                                           | Min value (numeric), length (text) or size (other) for the parameter                                                                                                |
+|                                  | p->max                                                           | Max value, length or size for the parameter                                                                                                                         |
+|                                  | p->required                                                      | Boolean, is this a required parameter                                                                                                                               |
+| Role->Aggregator              | An array of zero or more aggregators installed on the device        |
+|                                  | _id                                                                | Unique ID for the aggregator                                                                                                                                        |
 |                                  | handler                                                             | Handler file to implement data processing/manipulation                                                                                                              |
 |                                  | name                                                                | User friendly name for the aggregator                                                                                                                               |
 |                                  | channel                                                             | Unique channel to publish aggregated data on                                                                                                                        |
@@ -441,10 +441,10 @@ the specified device, including any roles deployed to the device.
 |                                  | poll                                                                | Frequency in milliseconds to generate and publish aggregated data                                                                                                   |
 |                                  | deployment                                                          | Deployment ID - part of orphaned devices, discussed later                                                                                                           |
 |                                  | Active                                                              | Is this aggregator active?                                                                                                                                          |
-|                                  | Include\_raw                                                        | Should the inbound data be included in the published data                                                                                                           |
+|                                  | Include_raw                                                        | Should the inbound data be included in the published data                                                                                                           |
 |                                  | topics                                                              | Array of topics to subscribe to for incoming data                                                                                                                   |
-| Role-&gt;Sensor                  | Array of sensors to integrate with and publish data from            |
-|                                  | \_id                                                                | Unique identifier for the sensor                                                                                                                                    |
+| Role->Sensor                  | Array of sensors to integrate with and publish data from            |
+|                                  | _id                                                                | Unique identifier for the sensor                                                                                                                                    |
 |                                  | name                                                                | User friendly name for the sensor                                                                                                                                   |
 |                                  | description                                                         | User friendly description for the sensor                                                                                                                            |
 |                                  | handler                                                             | Handler file, for integration purposes                                                                                                                              |
@@ -475,11 +475,11 @@ interpretation
 
 "roles": { //array of installed roles on the device
 
-"broker": \[ //array of installed brokers
+"broker": [ //array of installed brokers
 
 {
 
-"\_id": "", //unique id for this broker
+"_id": "", //unique id for this broker
 
 "path":"", // topic to subscribe to
 
@@ -493,7 +493,7 @@ interpretation
 
 "active": true
 
-}\],
+}],
 
 "coordinator": { // is this device a coordinator?
 
@@ -507,15 +507,15 @@ interpretation
 
 },
 
-"controller": \[{ //array of installed controllers
+"controller": [{ //array of installed controllers
 
-"\_id": "59c393ee54674b1ce4982a69",
+"_id": "59c393ee54674b1ce4982a69",
 
 "description": "Lighting controller - First Floor",
 
 "name": "LWRF - F1",
 
-"\_\_v": 0,
+"__v": 0,
 
 "deployment": "597f3056ef66be0648ef5bd3",
 
@@ -533,7 +533,7 @@ interpretation
 
 "e": "command to execute (executable path etc.",
 
-"p": \[ // array of parameters
+"p": [ // array of parameters
 
 "1": {
 
@@ -547,7 +547,7 @@ interpretation
 
 }
 
-\]
+]
 
 },
 
@@ -561,11 +561,11 @@ interpretation
 
 }
 
-}\],
+}],
 
-"aggregator": \[{
+"aggregator": [{
 
-"\_id": "59db76cdccc548be30e5249f",
+"_id": "59db76cdccc548be30e5249f",
 
 "handler": "59bfdae2d7649a3070551ade",
 
@@ -581,16 +581,16 @@ interpretation
 
 "active": true,
 
-"\_\_v": 0,
+"__v": 0,
 
-"include\_raw": true, //include sensor message data in publications?
+"include_raw": true, //include sensor message data in publications?
 
-"topics": \["s/1/2/3/4/5/6/7/8/8/9/9/9/9", "s/4/5/22", "s/3/4/5"\]
+"topics": ["s/1/2/3/4/5/6/7/8/8/9/9/9/9", "s/4/5/22", "s/3/4/5"]
 //subscribe to these topics and aggregate their data
 
 }, {
 
-"\_id": "59db76cdccc548be30e5249a",
+"_id": "59db76cdccc548be30e5249a",
 
 "handler": "59bfdae2d7649a3070551adb",
 
@@ -606,15 +606,15 @@ interpretation
 
 "active": true,
 
-"\_\_v": 0,
+"__v": 0,
 
-"topics": \["s/1/2/3/4/5/6/7/8/8/9/9/9/9", "s/4/5/22", "a/1/2/3/4/5"\]
+"topics": ["s/1/2/3/4/5/6/7/8/8/9/9/9/9", "s/4/5/22", "a/1/2/3/4/5"]
 
-}\],
+}],
 
-"sensor": \[{
+"sensor": [{
 
-"\_id": "59db98407e3a9fb060064ebf",
+"_id": "59db98407e3a9fb060064ebf",
 
 "id": "sn1234",
 
@@ -642,13 +642,13 @@ sensor on this topic
 
 "active": true,
 
-"\_\_v": 0
+"__v": 0
 
-}\]
+}]
 
 },
 
-"mqttServers": \[{ //what MQTT servers to connect or fail over to
+"mqttServers": [{ //what MQTT servers to connect or fail over to
 
 "mqttServerIP": "127.0.0.1",
 
@@ -656,7 +656,7 @@ sensor on this topic
 
 "priority": 1,
 
-"\_id": "59df294d3a092a2b805b6570"
+"_id": "59df294d3a092a2b805b6570"
 
 }, {
 
@@ -666,9 +666,9 @@ sensor on this topic
 
 "priority": 10,
 
-"\_id": "59df294d3a092a2b805b656f"
+"_id": "59df294d3a092a2b805b656f"
 
-}\]
+}]
 
 }
 ```
@@ -683,10 +683,10 @@ under utilisation of devices which could result in inefficiencies or
 bottlenecks across a deployment.
 
 The platform sends an empty health message to a particular device on
-topic "H/&lt;device path&gt;", where &lt;device path&gt; is the unique
+topic "H/<device path>", where <device path> is the unique
 path to the relevant device. The device will use a range of Operating
 System commands or utilities (e.g. "top", "df" etc.) to collate a set of
-statistics to return to the platform on topic "h/&lt;device path&gt;"
+statistics to return to the platform on topic "h/<device path>"
 
 The structure of the health message has not been defined to date, and it
 may be the case that different types of data could be requested by the
@@ -698,9 +698,9 @@ Error Messages: E Topic
 Error messages sent from the deployment have a different structure to
 most other types of messages in that the second and third elements
 define the role associated with the error and the type of error
-experienced. For example, a message topic "e/b/1/&lt;device path&gt;"
+experienced. For example, a message topic "e/b/1/<device path>"
 contains an error of type 1, "no path to device", relating to a broker
-on the device on path &lt;device path&gt;.
+on the device on path <device path>.
 
 The following table outlines the error types and priority ranges for the
 deployment
@@ -734,13 +734,13 @@ are available prior to the configuration data being verified.
 
 The structure of a handler message is as follows:
 
-Topic: "N/&lt;device path&gt;"
-```json
+Topic: "N/<device path>"
+```javascript
 Message: {
 
-"id": &lt;the unique identifier for the handler&gt;
+"id": <the unique identifier for the handler>
 
-"handler": &lt;base64 encoded representation of the handler file&gt;
+"handler": <base64 encoded representation of the handler file>
 
 }
 ```
@@ -773,7 +773,7 @@ message.
 Path: see items 1 – 5 below
 
 Message: 
-```json
+```javascript
 {
 
 > "t": "B/5/V/6/4",
@@ -784,13 +784,13 @@ Message:
 
 "c":"1",
 
-"p": \[
+"p": [
 
 "1": "a",
 
 "2": "0"
 
-\]
+]
 
 }
 
@@ -815,7 +815,7 @@ Sensor Readings: S Topic
 
 Sensor readings are sent on topic "s" – there is no upper case variant
 as the data will only ever travel towards the platform. Each message is
-sent on "s/&lt;sensor path&gt;" where &lt;sensor path&gt; is the path
+sent on "s/<sensor path>" where <sensor path> is the path
 specified in the sensor configuration.
 
 Each sensor topic is subscribed to by one or more Aggregators and the
@@ -843,12 +843,12 @@ Broker messages, and cannot be sent directly to a controller. The
 command element within an execution message is defined below
 
 command:
-```json
+```javascript
 {
 
 "c":"the id of the command to execute,
 
-"p":\[
+"p":[
 
 {"p1":"the first parameter"},
 
@@ -856,7 +856,7 @@ command:
 
 {"pn":"the nth parameter}
 
-\]
+]
 
 }
 ```
@@ -865,20 +865,20 @@ Aggregation Results: A topic
 
 - "a","aggregation output from an aggregator, can be sent via the
 coordinator, or as an input to another aggregator
-```json
+```javascript
 {
 
-"t":&lt;timestamp&gt;,
+"t":<timestamp>,
 
-\[
+[
 
 "1": first data element (e.g. average (mean) value)
 
 "2": second data element (e.g. max)
 
-"D": \["raw" data (from input sensors and/aggregators), if required\]
+"D": ["raw" data (from input sensors and/aggregators), if required]
 
-\]
+]
 
 }
 ```
