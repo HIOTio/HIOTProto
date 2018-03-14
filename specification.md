@@ -195,7 +195,9 @@ room.
 #### Example Implementation
 
 The diagram below illustrates a minimal HIP implementation.
+
 <img src="media/image2.png">
+
 D: A HIP Device
 
 S: Sensor – connected directly to a device or integrated via MQTT or
@@ -323,7 +325,7 @@ identifier for that device (typically the MAC address of the active
 network interface).
 
 For example:
-
+```json
 > Topic: “o”,
 >
 > Message: {
@@ -331,7 +333,7 @@ For example:
 > “deviceID”:””00-01-d3-33-76-9b”
 >
 > }
-
+```
 All Aggregators subscribe to the On-boarding channel (“o”) and upon
 receiving an On-boarding message will request a new device path from the
 Platform by publishing on “o/&lt;agg-path&gt;” where, &lt;agg-path&gt;
@@ -379,13 +381,13 @@ will be omitted from the device’s response.
 In both cases, the message structure is the same.
 
 Topic: “C/&lt;device path&gt;” or “c/&lt;device path&gt;”
-
+```json
 Message: {
 
 &lt;configuration data as specified below&gt;
 
 }
-
+```
 In order to query the configuration of a specific device, an empty
 configuration message can be sent from the Platform, the device will
 then respond with its configuration data.
@@ -454,7 +456,7 @@ the specified device, including any roles deployed to the device.
 
 Below is a typical device configuration message, with comments to aid
 interpretation
-
+```json
 {
 
 "device": {
@@ -669,7 +671,7 @@ sensor on this topic
 }\]
 
 }
-
+```
 Health Messages: H Topic
 ------------------------
 
@@ -733,7 +735,7 @@ are available prior to the configuration data being verified.
 The structure of a handler message is as follows:
 
 Topic: “N/&lt;device path&gt;”
-
+```json
 Message: {
 
 “id”: &lt;the unique identifier for the handler&gt;
@@ -741,7 +743,7 @@ Message: {
 “handler”: &lt;base64 encoded representation of the handler file&gt;
 
 }
-
+```
 On receipt of the message, a device will need to decode the Base64
 encoded handler file and save it with the name specified in “id” – this
 “id” filename can then be referenced in configuration messages (e.g. for
@@ -770,7 +772,9 @@ message.
 
 Path: see items 1 – 5 below
 
-Message: {
+Message: 
+```json
+{
 
 > “t”: “B/5/V/6/4”,
 
@@ -791,7 +795,7 @@ Message: {
 }
 
 }
-
+```
 1.  coordinator publishes on "B/5"
 
 2.  Broker subscribed to “B/5, publishes same message on "B/5/V"
@@ -839,7 +843,7 @@ Broker messages, and cannot be sent directly to a controller. The
 command element within an execution message is defined below
 
 command:
-
+```json
 {
 
 "c":"the id of the command to execute,
@@ -855,13 +859,13 @@ command:
 \]
 
 }
-
+```
 Aggregation Results: A topic
 ----------------------------
 
 - "a","aggregation output from an aggregator, can be sent via the
 coordinator, or as an input to another aggregator
-
+```json
 {
 
 "t":&lt;timestamp&gt;,
@@ -877,7 +881,7 @@ coordinator, or as an input to another aggregator
 \]
 
 }
-
+```
 Event Messages: V Topic
 -----------------------
 
