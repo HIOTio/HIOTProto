@@ -23,7 +23,7 @@ third party components and translate between HIP and protocols.
 
 During the development of the protocol, a particular use case was
 selected in order to test the suitability of the specific message types,
-a “smart” office building. To examine the practical functionality, a
+a "smart" office building. To examine the practical functionality, a
 partial implementation of the protocol was developed in NodeJS with MQTT
 as the messaging protocol.
 
@@ -79,7 +79,7 @@ or any other type of files capable of being executed on a device.
 
 ### Cloud-side
 
-“Cloud-side” refers to typical SaaS offerings, including remote
+"Cloud-side" refers to typical SaaS offerings, including remote
 administration tools and user-facing components. The cloud-side has been
 divided into a number of subcomponents offering specific functionality.
 While some of these components and their functionality is outside of the
@@ -104,7 +104,7 @@ Platform refers to all cloud-side elements within IOT.
 ### Path
 
 Paths for part of each topic sent and received by a deployment. For
-example, a health message would take the form “h/&lt;device path&gt;”,
+example, a health message would take the form "h/&lt;device path&gt;",
 where &lt;device path&gt; is the unique path for the associated device.
 
 Each role deployed to a device also has a unique path. For example, a
@@ -115,7 +115,7 @@ change.
 
 ### Deployment-side
 
-“Deployment-side” refers to the local IOT implementation - for example,
+"Deployment-side" refers to the local IOT implementation - for example,
 our smart building or a production line in a factory. Within the
 Deployment-side, generic devices are configured via messages sent from
 the platform and their functionality is determined by their configured
@@ -255,26 +255,26 @@ remove similar looking (0 and O etc.) from the topics.
 
 The first character of the topic string represents the category of
 message being sent (discussed later in the document) and also the
-“direction of the message” – capital letters are used to denote a
+"direction of the message" – capital letters are used to denote a
 message from the platform to the deployment, while lower case letters
 are used for messages travelling in the opposite direction.
 
-Topics are managed “platform-side” and it is the responsibility of the
+Topics are managed "platform-side" and it is the responsibility of the
 platform to ensure that each device and role within a particular
 deployment has a unique topic associated with it.
 
 The list below highlights the number of distinct topics for a particular
-topic length, for example “?/a/b/c/d “, where “?” is the type message,
+topic length, for example "?/a/b/c/d ", where "?" is the type message,
 for example, a health message from a device could use the following
 topic "h/1/2/5/B"
 
--   2 levels (“?/a”) = 58 devices and roles
+-   2 levels ("?/a") = 58 devices and roles
 
--   3 levels (“?/a/b”) = 3,364 devices and roles
+-   3 levels ("?/a/b") = 3,364 devices and roles
 
--   4 levels (“?/a/b/c”) = 195,112 devices and roles
+-   4 levels ("?/a/b/c") = 195,112 devices and roles
 
--   5 levels (“?/a/b/c /d”) = 11,316,496 devices and roles
+-   5 levels ("?/a/b/c /d") = 11,316,496 devices and roles
 
 =&gt; a 9-character topic string can support over 10,000,000 devices and
 roles in a single deployment.
@@ -303,14 +303,14 @@ Coordinators, and published from or subscribed to by other devices or
 the platform. These message are designed to ensure that there is one,
 and only one, active coordinator in the deployment.
 
-Capital letters (“Z”) are used in messages from the active Coordinator,
-while any “hot-swap” or passive Coordinators will send message on the
-lower case topic (“z”).
+Capital letters ("Z") are used in messages from the active Coordinator,
+while any "hot-swap" or passive Coordinators will send message on the
+lower case topic ("z").
 
 Coordinator message topics are different from most in that there are no
 additional elements within the within the topic path. All coordinators
-subscribe to the coordinator topics (“Z” and “z”) and can publish on
-“z”, but only the currently active Coordinator can publish on (“Z”)
+subscribe to the coordinator topics ("Z" and "z") and can publish on
+"z", but only the currently active Coordinator can publish on ("Z")
 
 This has not been fully considered to date, but would expect to re-use
 concepts from other active-passive architecture
@@ -320,28 +320,28 @@ On-boarding: O Topic
 
 HIP devices which do not have an active configuration, e.g. a new
 device which has just been connected to the deployment’s network, will
-publish an On-boarding message on topic “o”, containing a unique
+publish an On-boarding message on topic "o", containing a unique
 identifier for that device (typically the MAC address of the active
 network interface).
 
 For example:
 ```json
-> Topic: “o”,
+> Topic: "o",
 >
 > Message: {
 >
-> “deviceID”:””00-01-d3-33-76-9b”
+> "deviceID":""00-01-d3-33-76-9b"
 >
 > }
 ```
-All Aggregators subscribe to the On-boarding channel (“o”) and upon
+All Aggregators subscribe to the On-boarding channel ("o") and upon
 receiving an On-boarding message will request a new device path from the
-Platform by publishing on “o/&lt;agg-path&gt;” where, &lt;agg-path&gt;
+Platform by publishing on "o/&lt;agg-path&gt;" where, &lt;agg-path&gt;
 is the device ID of the aggregator.
 
 The Platform then publishes the new, unique Device ID on topic
-“O/&lt;agg-path&gt;”. On receipt, of the message, the aggregator
-forwards it on topic “o/&lt;deviceID&gt;”. Duplicate On-boarding message
+"O/&lt;agg-path&gt;". On receipt, of the message, the aggregator
+forwards it on topic "o/&lt;deviceID&gt;". Duplicate On-boarding message
 for the same device, i.e. from other Aggregators, are ignored.
 
 <img src="media/onboard.png">
@@ -351,12 +351,12 @@ provided by the platform.
 
 | Message sender and Purpose          | Path                       | Data                       |
 |-------------------------------------|----------------------------|----------------------------|
-| Device: Get a unique device path    | “o”                        | Unique device ID : String  |
-| Aggregator: Request a new device id | “o/&lt;first agg path&gt;” | Unique device ID: String   |
-| Platform: set device path           | “O/&lt;first agg path&gt;” | Unique device ID: String   
+| Device: Get a unique device path    | "o"                        | Unique device ID : String  |
+| Aggregator: Request a new device id | "o/&lt;first agg path&gt;" | Unique device ID: String   |
+| Platform: set device path           | "O/&lt;first agg path&gt;" | Unique device ID: String   
                                                                                                 
                                                                     Unique device Path: String  |
-| Aggregator: set device path         | “O/&lt;device id&gt;”      | Unique device Path: String |
+| Aggregator: set device path         | "O/&lt;device id&gt;"      | Unique device Path: String |
 
 Once the device path has been set, the device can be managed and
 configured from the platform.
@@ -365,14 +365,14 @@ Device Config: C Topic
 ----------------------
 
 Device configuration is managed via the Platform through the use of
-message on the “C/&lt;path&gt;” and “c&lt;/path&gt;” topics. A new
+message on the "C/&lt;path&gt;" and "c&lt;/path&gt;" topics. A new
 configuration can be pushed to a specific device from the platform by
-pubishing on “C/&lt;device path&gt;”, where &lt;device path&gt; is the
+pubishing on "C/&lt;device path&gt;", where &lt;device path&gt; is the
 unique path for the relevant device (e.g. a device which has just been
 on-boarded).
 
 Once the device has applied the relevant configuration, it responds to
-the platform on topic “c/&lt;device path&gt;”, with the updated
+the platform on topic "c/&lt;device path&gt;", with the updated
 configuration data. In the event that the platform has tried to
 configure an unsupported function (e.g. if the device is not fully HIP
 compatible, or does not support all roles), the unsupported functions
@@ -380,7 +380,7 @@ will be omitted from the device’s response.
 
 In both cases, the message structure is the same.
 
-Topic: “C/&lt;device path&gt;” or “c/&lt;device path&gt;”
+Topic: "C/&lt;device path&gt;" or "c/&lt;device path&gt;"
 ```json
 Message: {
 
@@ -456,16 +456,16 @@ the specified device, including any roles deployed to the device.
 
 Below is a typical device configuration message, with comments to aid
 interpretation
-```json
+```javascript
 {
 
 "device": {
 
-"HIPId": “”, //String, the unique device ID set by the Platform
+"HIPId": "", //String, the unique device ID set by the Platform
 
-“deviceId”: “”, //String, unique ID of the device, e.g. MAC address
+"deviceId": "", //String, unique ID of the device, e.g. MAC address
 
-"name": “”, //String, user friendly name, assigned via platform
+"name": "", //String, user friendly name, assigned via platform
 
 "description": "", //String, description, assigned via platform
 
@@ -481,7 +481,7 @@ interpretation
 
 "\_id": "", //unique id for this broker
 
-“path”:””, // topic to subscribe to
+"path":"", // topic to subscribe to
 
 "deployment": "", // unique id for the relevant deployment
 
@@ -501,9 +501,9 @@ interpretation
 
 "m2mMqttServer": "", // Coordinator Link address/name
 
-“active”: true,
+"active": true,
 
-“auth”: {} // relevant authentication parameters for the platform
+"auth": {} // relevant authentication parameters for the platform
 
 },
 
@@ -533,17 +533,17 @@ interpretation
 
 "e": "command to execute (executable path etc.",
 
-“p”: \[ // array of parameters
+"p": \[ // array of parameters
 
-“1”: {
+"1": {
 
-“datatype”:””,
+"datatype":"",
 
-“min”:0,
+"min":0,
 
-“max”:100, //min value/length/size
+"max":100, //min value/length/size
 
-“required”: true
+"required": true
 
 }
 
@@ -555,7 +555,7 @@ interpretation
 
 "name": "name of the second command ",
 
-"e": “executable path"
+"e": "executable path"
 
 },
 
@@ -683,14 +683,14 @@ under utilisation of devices which could result in inefficiencies or
 bottlenecks across a deployment.
 
 The platform sends an empty health message to a particular device on
-topic “H/&lt;device path&gt;”, where &lt;device path&gt; is the unique
+topic "H/&lt;device path&gt;", where &lt;device path&gt; is the unique
 path to the relevant device. The device will use a range of Operating
-System commands or utilities (e.g. “top”, “df” etc.) to collate a set of
-statistics to return to the platform on topic “h/&lt;device path&gt;”
+System commands or utilities (e.g. "top", "df" etc.) to collate a set of
+statistics to return to the platform on topic "h/&lt;device path&gt;"
 
 The structure of the health message has not been defined to date, and it
 may be the case that different types of data could be requested by the
-platform by tailoring the initial, “H”, message sent.
+platform by tailoring the initial, "H", message sent.
 
 Error Messages: E Topic
 -----------------------
@@ -698,8 +698,8 @@ Error Messages: E Topic
 Error messages sent from the deployment have a different structure to
 most other types of messages in that the second and third elements
 define the role associated with the error and the type of error
-experienced. For example, a message topic “e/b/1/&lt;device path&gt;”
-contains an error of type 1, “no path to device”, relating to a broker
+experienced. For example, a message topic "e/b/1/&lt;device path&gt;"
+contains an error of type 1, "no path to device", relating to a broker
 on the device on path &lt;device path&gt;.
 
 The following table outlines the error types and priority ranges for the
@@ -734,19 +734,19 @@ are available prior to the configuration data being verified.
 
 The structure of a handler message is as follows:
 
-Topic: “N/&lt;device path&gt;”
+Topic: "N/&lt;device path&gt;"
 ```json
 Message: {
 
-“id”: &lt;the unique identifier for the handler&gt;
+"id": &lt;the unique identifier for the handler&gt;
 
-“handler”: &lt;base64 encoded representation of the handler file&gt;
+"handler": &lt;base64 encoded representation of the handler file&gt;
 
 }
 ```
 On receipt of the message, a device will need to decode the Base64
-encoded handler file and save it with the name specified in “id” – this
-“id” filename can then be referenced in configuration messages (e.g. for
+encoded handler file and save it with the name specified in "id" – this
+"id" filename can then be referenced in configuration messages (e.g. for
 Aggregator or Sensor Operations)
 
 Operational Messages
@@ -762,12 +762,12 @@ lowercase variant as they will always travel away from the platform.
 For example:
 
 The platform wants to execute command number 1, on controller
-“1/2/3/4/5” with parameters “a” and 0. The greyed area below represents
-the corresponding message to be sent to the controller, while “p” is the
-destination for the message. (similarly, “C/5/4/3/2/1” could be used to
-send configuration data to device “5/4/3/2/1”)
+"1/2/3/4/5" with parameters "a" and 0. The greyed area below represents
+the corresponding message to be sent to the controller, while "p" is the
+destination for the message. (similarly, "C/5/4/3/2/1" could be used to
+send configuration data to device "5/4/3/2/1")
 
-The broker topic, “t”, is the hierarchy of brokers used to route the
+The broker topic, "t", is the hierarchy of brokers used to route the
 message.
 
 Path: see items 1 – 5 below
@@ -776,19 +776,19 @@ Message:
 ```json
 {
 
-> “t”: “B/5/V/6/4”,
+> "t": "B/5/V/6/4",
 
-“p”: “X/1/2/3/C/2”,
+"p": "X/1/2/3/C/2",
 
-“m”: {
+"m": {
 
-“c”:”1”,
+"c":"1",
 
-“p”: \[
+"p": \[
 
-“1”: ”a”,
+"1": "a",
 
-“2”: “0”
+"2": "0"
 
 \]
 
@@ -798,14 +798,14 @@ Message:
 ```
 1.  coordinator publishes on "B/5"
 
-2.  Broker subscribed to “B/5, publishes same message on "B/5/V"
+2.  Broker subscribed to "B/5, publishes same message on "B/5/V"
 
-3.  Broker subscribed to “B/5/V” publishes same message on “B/5/V/6”
+3.  Broker subscribed to "B/5/V" publishes same message on "B/5/V/6"
 
-4.  Broker subscribed to “B/5/V/6”, publishes same message on
-    "B/5/V/6/4”
+4.  Broker subscribed to "B/5/V/6", publishes same message on
+    "B/5/V/6/4"
 
-5.  Broker subscribed to “B/5/V/6/4”, publishes **included command
+5.  Broker subscribed to "B/5/V/6/4", publishes **included command
     message** on "X/1/2/3/C/2"
 
 6.  device subscribed to " X/1/2/3/C/2" executes the command
@@ -813,9 +813,9 @@ Message:
 Sensor Readings: S Topic
 ------------------------
 
-Sensor readings are sent on topic “s” – there is no upper case variant
+Sensor readings are sent on topic "s" – there is no upper case variant
 as the data will only ever travel towards the platform. Each message is
-sent on “s/&lt;sensor path&gt;” where &lt;sensor path&gt; is the path
+sent on "s/&lt;sensor path&gt;" where &lt;sensor path&gt; is the path
 specified in the sensor configuration.
 
 Each sensor topic is subscribed to by one or more Aggregators and the
@@ -833,8 +833,8 @@ Execution messages are sent to a Controller in order to execute a
 command as specified in the Controller’s configuration.
 
 In addition to the Platform, which can publish execution messages on
-topic “X”, Commanders within the deployment can also publish execution
-messages using the lower case variant, “x”. In either case, these
+topic "X", Commanders within the deployment can also publish execution
+messages using the lower case variant, "x". In either case, these
 message specific a controller, a command to execute and zero or more
 parameters for the command.
 
