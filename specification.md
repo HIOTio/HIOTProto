@@ -330,7 +330,7 @@ Topic: "o",
 
 ```javascript
  Message: {
-    "deviceID":""00-01-d3-33-76-9b"
+    "deviceID":"00-01-d3-33-76-9b"
  }
 ```
 All Aggregators subscribe to the On-boarding channel ("o") and upon
