@@ -14,13 +14,13 @@ At the core of HIP is the device, an abstract representation of an IoT thing/dev
 ## Device
 HIP is interested in devices as a host for the above roles. Rather than being concerned with the configuration of the device (e.g. network and OS configuration), HIP is focused on deploying and removing roles on devices and identifying bottlenecks or underutilised devices across the deployment.
 
-##Sensor
+## Sensor
 Sensors gather telemetry data either locally (e.g. attached directly to GPIO pins) or remotely (e.g. via an RF receiver) and publish this data on a defined MQTT topic in the form of "s/sensor_path" - where sensor_path is a unique path for the sensor)
 
-##Controller
+## Controller
 Much like sensors, controllers connect to local or remote actuators. Commands are published on defined topics in the form "X/controller_path" where controller_path is unique to the individual controller
 
-##Aggregator
+## Aggregator
 Aggregators subscribe to sensor topics and process the sensor data in some way. Aggregators can subscribe to any number of sensors topics, and equally, the same sensor data can be fed into multiple aggregators. 
 
 This allows deployment data to be processed in many different ways before being sent to the platform. An aggregator could, for example, provide a daily summary of data across a number of different sensors or calculate the minimum, maximum and mean reading from a collection of sensors.
@@ -33,13 +33,13 @@ Configuration data is sent to the underlying device as part of the device config
 
 In order to move an aggregator from one device to another, each device is sent an updated configuration, removing the aggregator from one device and adding it to another
 
-##Delegator
+## Delegator
 
-##Commander
+## Commander
 
-##Coordinator
+## Coordinator
 
-#Messaging
+# Messaging
 Work to date has leverage MQTT as the underlying messaging protocol. Each device and deployed role has a unique set of MQTT topics to publish on or subscribe to.
 
 MQTT wildcards are not used as part of the protocol.
@@ -49,11 +49,11 @@ Messages from the platform to the deployment start with an uppercase letter, whi
 
 ## Device Messaging
 
-###Onboarding
+### Onboarding
 
-###Configuration
+### Configuration
 
-###Heath
+### Heath
 
 In order to interact with devices, the following communication topics are used
 
