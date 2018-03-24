@@ -1,4 +1,4 @@
-#HIP - the Hierarchical IoT Protocol
+# HIP - the Hierarchical IoT Protocol
 
 HIP is a high level protocol for the Internet of Things. 
 
@@ -11,7 +11,7 @@ At the core of HIP is the device, an abstract representation of an IoT thing/dev
 - <b>Commander</b>, to allow local interaction with Sensors and Controllers without relying on the cloud platform 
 - <b>Coordinator</b>, Edge device responsible for all communications in to and out of a deployment
 
-##Device
+## Device
 HIP is interested in devices as a host for the above roles. Rather than being concerned with the configuration of the device (e.g. network and OS configuration), HIP is focused on deploying and removing roles on devices and identifying bottlenecks or underutilised devices across the deployment.
 
 ##Sensor
