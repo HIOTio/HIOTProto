@@ -76,20 +76,31 @@ Handlers are deployed as part of the aggregator and provide the functionality to
 A core goal of HIP is to help standardise how IOT is deployed without restricting or prescribing how it is used. The ability of Aggregators to process any type of input data in any way is key to achieving this goal.
 
 ## Controller Messaging
-
+Each Controller has a unique controller_path and subscribes to topic ("X/<controller_path>") - accepting eXecution messages from the platform or a Commander via one or more delegators.
+ 
 ## Coordinator Messaging
-
+Message between the platform and the deployment pass through the coordinator, in addition, Coordinator topics ("Z" and "z") are subscribed to by all coordinators (i.e. the active coordinator and any standby devices). All coordinators can publish on "z", but only the active coordinator can publish on "Z"
+ 
 ## Delegator Messaging
+Each delegator has a unique topic ("B/<delegator_path")
+
+Delegators will forward received messages to:
+
+- another delegator
+- a specified controller to carry out an action
+- a group of controllers to carry out a number of linked actions
 
 ## Sensor Messaging
 
+Sensors do not subscribe to any topics, and each sensor has a unique topic ("s/<sensor_path>") which it publishes on.
+
 ## Commander Messaging
+Commanders are different from other roles.
 
-In order to interact with devices, the following communication topics are used
+Firstly, commanders do not have any topics of their own and subscribe to any number of sensor or aggregator topics and publish on pre-configurated delegator topics.
 
-- Configuration ("C/device_path")
-Each role has associated configuration data
-Work to date has focused on leveraging MQTT as the underlying messaging protocol, but there should be no reason why other messaging protocols or standards could not be used.
+Secondly, in order to integrate with other systems (outside of HIP) the commander also includes REST services to allow other systems to control HIP
 
 
-Take a look at specification.md for the latest draft. It's still very early days, so feel free to help out and contribute to the specification
+# Want to learn more....
+Take a look at < a href="specification.md">the specification</a> for the latest draft. It's still very early days, so feel free to help out and contribute to the specification
