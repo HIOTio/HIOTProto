@@ -4,7 +4,7 @@ Introduction
 Overview
 --------
 
-Hierarchical Internet of Things (HIP) is a communication protocol for
+The Hierarchical Internet of Things Protocol (HIP) is a communication protocol for
 the Internet of Things (IOT). It is designed to provide a full suite of
 messaging for the configuration, management and operational
 functionality of any IOT use case.
