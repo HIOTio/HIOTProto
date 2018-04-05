@@ -103,4 +103,4 @@ Secondly, in order to integrate with other systems (outside of HIP) the commande
 
 
 # Want to learn more....
-Take a look at < a href="specification.md">the specification</a> for the latest draft. It's still very early days, so feel free to help out and contribute to the specification
+Take a look at <a href="specification.md">the specification</a> for the latest draft. It's still very early days, so feel free to help out and contribute to the specification
