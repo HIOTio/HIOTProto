@@ -16,7 +16,7 @@
 *.launch
 .settings/
 *.sublime-workspace
-
+.tern-project
 # IDE - VSCode
 .vscode/*
 !.vscode/settings.json
