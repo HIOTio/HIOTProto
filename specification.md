@@ -296,7 +296,8 @@ the deployment.
 Messages by Role
 ================
 
-## Device Messaging
+
+# Device Messaging
 
 These messages support the underlying device and manage the deployment/removal of roles on a device.
 
@@ -350,6 +351,32 @@ provided by the platform.
 Once the device path has been set, the device can be managed and
 configured from the platform.
 
+Handler Messages: N Topic
+-------------------------
+
+Handler messages are used to push new or updated handler files from the
+Platform to a device. Handler messages are typically sent in advance of
+a configuration message from the Platform so that the required handlers
+are available prior to the configuration data being verified.
+
+The structure of a handler message is as follows:
+
+Topic: "N/<device path>"
+```javascript
+Message: {
+
+"id": <the unique identifier for the handler>
+
+"handler": <base64 encoded representation of the handler file>
+
+}
+```
+On receipt of the message, a device will need to decode the Base64
+encoded handler file and save it with the name specified in "id" – this
+"id" filename can then be referenced in configuration messages (e.g. for
+Aggregator or Sensor Operations)
+
+
 Device Config: C Topic
 ----------------------
 Configuration messages ("C/<device_path>") are sent from the platform to update the configuration of a device (e.g. add/remove roles, enable/disable an MQTT brokers on the device etc.)
@@ -394,7 +421,7 @@ the specified device, including any roles deployed to the device.
 |                                  | name                                                                | User friendly name for the device                                                                                                                                   |
 |                                  | description                                                         | A description of the device                                                                                                                                         |
 |                                  | devicePath                                                          | Unique path for the device topics                                                                                                                                   |
-| Device->MQTTServers           | Configuration data for any MQTT delegatorss that the device connects to |
+| Device->MQTTServers           | Configuration data for any MQTT delegators that the device connects to |
 | Roles->delegators                 | An array of zero or more delegators implementations                     |
 |                                  | _id                                                                | Unique ID for the particular delegators implementation                                                                                                                  |
 |                                  | path                                                                | Unique path for this implementation                                                                                                                                 |
@@ -467,19 +494,19 @@ interpretation
 
 "roles": { //array of installed roles on the device
 
-"delegators": [ //array of installed delegatorss
+"delegators": [ //array of installed delegators
 
 {
 
-"_id": "", //unique id for this delegators
+"_id": "", //unique id for this delegator
 
 "path":"", // topic to subscribe to
 
 "deployment": "", // unique id for the relevant deployment
 
-"description": "", // a description of what the delegators does
+"description": "", // a description of what the delegator does
 
-"name": "", // name for the delegators
+"name": "", // name for the delegator
 
 "handler": "", // unique ID for the associated handler file
 
@@ -664,11 +691,6 @@ sensor on this topic
 }
 ```
 
-Sensor Messaging: s topic
--------------------------
-
-Sensors do not subscribe to any topics, and each sensor has a unique topic ("s/<sensor_path>") which it publishes on.
-
 Health Messages: H Topic
 ------------------------
 Health message ("h/<device_path>"), are periodically sent from devices to the platform and contain summary information on the device resources (e.g. memory usage, disk I/O and free space and/or the output from commands like "top" etc.)
@@ -692,6 +714,34 @@ The structure of the health message has not been defined to date, and it
 may be the case that different types of data could be requested by the
 platform by tailoring the initial, "H", message sent.
 
+Sensor Messages
+---------------
+
+Sensor Readings: s Topic
+------------------------
+
+
+Sensors do not subscribe to any topics, and each sensor has a unique topic ("s/<sensor_path>") which it publishes on.
+
+The content of the message is specified by the relevant sensor handler
+
+Each message is sent on "s/<sensor path>" where <sensor path> is the path
+specified in the sensor configuration, there is no upper case variant
+as the data will only ever travel towards the platform.
+
+Each sensor topic is subscribed to by one or more Aggregators and the
+Aggregator handler file defines the expected structure of the sensor
+message and the operations to perform on it. In this way, HIP can
+support any type of sensor and process any format of data from simple
+numeric temperature or humidity values through to multi-dimensional data
+and even voice and video data. This allows HIP to be deployed across a
+vast range of use cases and deployment types.
+
+
+
+Aggregator Messages
+-------------------
+
 Aggregation Messages: A topic
 -----------------------------
 Aggregators subscribe to one or more sensors or  other aggregators. Each implementation of an aggregator has a specific aggregator path (MQTT topic) associated with it. 
@@ -707,18 +757,23 @@ A core goal of HIP is to help standardise how IOT is deployed without restrictin
 ```javascript
 {
 
-"t":<timestamp>,
+	"t":<timestamp>,
+	
+	[
+	
+		"1": first data element (e.g. average (mean) value)
+		
+		"2": second data element (e.g. max)
+		"n": the nth data element
+		
+		"d": ["raw" data (from input sensors and/aggregators), if required]
+	
+	]
+}
+```
 
-[
-
-"1": first data element (e.g. average (mean) value)
-
-"2": second data element (e.g. max)
-"n": the nth data element
-
-"D": ["raw" data (from input sensors and/aggregators), if required]
-
-]
+Controller Messages
+-------------------
 
 Execution messages: X Topic
 ---------------------------
@@ -732,31 +787,33 @@ In addition to the Platform, which can publish execution messages on
 topic "X", Commanders within the deployment can also publish execution
 messages on the same topic. In either case, these messages specify a controller, a command to execute and zero or more parameters for the command.
 
+```javascript
 
-command:
-```javascriptt
-{
+	{
+		
+		"c":<the id of the command to execute>,
+		
+			"p":[
+			
+			{"p1":<the first parameter>},
+			
+			...
+			
+			{"pn":<the nth parameter>}
+			
+			]
+	
+	}
 
-"c":<the id of the command to execute>,
+```
 
-"p":[
-
-{"p1":<the first parameter>},
-
-...
-
-{"pn":<the nth parameter>}
-
-]
-
-}
-````
-`
+Delegator Messages
+------------------
 
 Delegation Messages: B Topic
 ----------------------------
 
-Each delegator has a unique topic ("B/<delegator_path") - "B" is a legacy of "brokers" the original name for delegators.
+Each delegator has a unique topic ("B/<delegator_path") - "B" is a legacy of "broker" the original name for delegators.
 
 Delegators will forward received messages to:
 
@@ -764,17 +821,64 @@ Delegators will forward received messages to:
 - a specified controller to carry out an action
 - a group of controllers to carry out a number of linked actions
 
+Messages from the Platform are encapsulated in delegator messages before
+being published to the deployment. delegator messages do not have a
+lowercase variant as they will always travel away from the platform.
 
-Event Messages: V Topic
------------------------
+For example:
 
-- "V": platform notifies deployment/device of an event..??
+The platform wants to execute command number 1, on controller
+"1/2/3/4/5" with parameters "a" and 0. The greyed area below represents
+the corresponding message to be sent to the controller, while "p" is the
+destination for the message. (similarly, "C/5/4/3/2/1" could be used to
+send configuration data to device "5/4/3/2/1")
 
-- "v": device notifies platform of an event (e.g. temperature exceeds
-predefined limit)
+The delegators topic, "t", is the hierarchy of delegators used to route the
+message.
 
-"v" paths include a type as the second element and priority as the third
-element(e.g. "v/e/1" is a high priority error)
+Path: see items 1 - 5 below
+
+Message: 
+```javascript
+{
+
+	"t": "B/5/V/6/4",
+	
+	"p": "X/1/2/3/C/2",
+	
+	"m": {
+	
+		"c":"1",
+	
+		"p": [
+	
+			"1": "a",
+	
+			"2": "0"
+	
+		]
+	
+		}
+
+}
+```
+1.  coordinator publishes on "B/5"
+
+2.  delegator subscribed to "B/5, publishes same message on "B/5/V"
+
+3.  delegator subscribed to "B/5/V" publishes same message on "B/5/V/6"
+
+4.  delegator subscribed to "B/5/V/6", publishes same message on
+    "B/5/V/6/4"
+
+5.  delegator subscribed to "B/5/V/6/4", publishes **included command
+    message** on "X/1/2/3/C/2"
+
+6.  device subscribed to " X/1/2/3/C/2" executes the command
+
+
+Coordinator Messages
+--------------------
 
 Coordinator sync: Z Topic
 -------------------------
@@ -811,6 +915,9 @@ Commanders are different from other roles in that:
 - in order to integrate with other systems (outside of HIP) the commander also includes REST services to allow other systems to control HIP
 
 
+General or Shared Message Topics
+-------------------------------
+
 Error Messages: E Topic
 -----------------------
 
@@ -843,106 +950,6 @@ deployment
 |       |                                                    |                                                                            |
 | e/s/1 | Sensor Error                                       |                                                                            |
 
-Handler Messages: N Topic
--------------------------
-
-Handler messages are used to push new or updated handler files from the
-Platform to a device. Handler messages are typically sent in advance of
-a configuration message from the Platform so that the required handlers
-are available prior to the configuration data being verified.
-
-The structure of a handler message is as follows:
-
-Topic: "N/<device path>"
-```javascript
-Message: {
-
-"id": <the unique identifier for the handler>
-
-"handler": <base64 encoded representation of the handler file>
-
-}
-```
-On receipt of the message, a device will need to decode the Base64
-encoded handler file and save it with the name specified in "id" – this
-"id" filename can then be referenced in configuration messages (e.g. for
-Aggregator or Sensor Operations)
-
-
-Message brokering: B Topic
---------------------------
-
-Messages from the Platform are encapsulated in delegators messages before
-being published to the deployment. delegators messages do not have a
-lowercase variant as they will always travel away from the platform.
-
-For example:
-
-The platform wants to execute command number 1, on controller
-"1/2/3/4/5" with parameters "a" and 0. The greyed area below represents
-the corresponding message to be sent to the controller, while "p" is the
-destination for the message. (similarly, "C/5/4/3/2/1" could be used to
-send configuration data to device "5/4/3/2/1")
-
-The delegators topic, "t", is the hierarchy of delegatorss used to route the
-message.
-
-Path: see items 1 – 5 below
-
-Message: 
-```javascript
-{
-
-> "t": "B/5/V/6/4",
-
-"p": "X/1/2/3/C/2",
-
-"m": {
-
-"c":"1",
-
-"p": [
-
-"1": "a",
-
-"2": "0"
-
-]
-
-}
-
-}
-```
-1.  coordinator publishes on "B/5"
-
-2.  delegator subscribed to "B/5, publishes same message on "B/5/V"
-
-3.  delegator subscribed to "B/5/V" publishes same message on "B/5/V/6"
-
-4.  delegator subscribed to "B/5/V/6", publishes same message on
-    "B/5/V/6/4"
-
-5.  delegator subscribed to "B/5/V/6/4", publishes **included command
-    message** on "X/1/2/3/C/2"
-
-6.  device subscribed to " X/1/2/3/C/2" executes the command
-
-Sensor Readings: S Topic
-------------------------
-
-Sensor readings are sent on topic "s" – there is no upper case variant
-as the data will only ever travel towards the platform. Each message is
-sent on "s/<sensor path>" where <sensor path> is the path
-specified in the sensor configuration.
-
-Each sensor topic is subscribed to by one or more Aggregators and the
-Aggregator handler file defines the expected structure of the sensor
-message and the operations to perform on it. In this way, HIP can
-support any type of sensor and process any format of data – from simple
-numeric temperature or humidity values through to multi-dimensional data
-and even voice and video data. This allows HIP to be deployed across a
-vast range of use cases and deployment types.
-
 
 
 Query Messages: Q Topic
@@ -962,7 +969,16 @@ from the deployment (requires "smart" roles)
 - "r": device responds to the platform - e.g. confirm a role has been
 moved to a device
 
+Event Messages: V Topic
+-----------------------
 
+- "V": platform notifies deployment/device of an event..??
+
+- "v": device notifies platform of an event (e.g. temperature exceeds
+predefined limit)
+
+"v" paths include a type as the second element and priority as the third
+element(e.g. "v/e/1" is a high priority error)
 
 Use cases 
 ==========
