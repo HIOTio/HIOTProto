@@ -664,6 +664,10 @@ sensor on this topic
 }
 ```
 
+Sensor Messaging: s topic
+-------------------------
+
+Sensors do not subscribe to any topics, and each sensor has a unique topic ("s/<sensor_path>") which it publishes on.
 
 Health Messages: H Topic
 ------------------------
@@ -699,6 +703,22 @@ Handlers are deployed as part of the aggregator and provide the functionality to
 A core goal of HIP is to help standardise how IOT is deployed without restricting or prescribing how it is used. The ability of Aggregators to process any type of input data in any way is key to achieving this goal.
 
 
+"a","aggregation output from an aggregator, can be sent to the platform via the coordinator, and/or as used an input to another aggregator
+```javascript
+{
+
+"t":<timestamp>,
+
+[
+
+"1": first data element (e.g. average (mean) value)
+
+"2": second data element (e.g. max)
+"n": the nth data element
+
+"D": ["raw" data (from input sensors and/aggregators), if required]
+
+]
 
 Execution messages: X Topic
 ---------------------------
@@ -710,13 +730,11 @@ command as specified in the Controller's configuration.
 
 In addition to the Platform, which can publish execution messages on
 topic "X", Commanders within the deployment can also publish execution
-messages using the lower case variant, "x". In either case, these
-messages specify a controller, a command to execute and zero or more
-parameters for the command.
+messages on the same topic. In either case, these messages specify a controller, a command to execute and zero or more parameters for the command.
 
 
 command:
-```javascript
+```javascriptt
 {
 
 "c":<the id of the command to execute>,
@@ -727,37 +745,25 @@ command:
 
 ...
 
-{"pn":<the nth parameter}
+{"pn":<the nth parameter>}
 
 ]
 
 }
-```
-Aggregation Results: A topic
+````
+`
+
+Delegation Messages: B Topic
 ----------------------------
 
-- "a","aggregation output from an aggregator, can be sent via the
-coordinator, or as an input to another aggregator
-```javascript
-{
+Each delegator has a unique topic ("B/<delegator_path") - "B" is a legacy of "brokers" the original name for delegators.
 
-"t":<timestamp>,
+Delegators will forward received messages to:
 
-[
+- another delegator
+- a specified controller to carry out an action
+- a group of controllers to carry out a number of linked actions
 
-"1": first data element (e.g. average (mean) value)
-
-"2": second data element (e.g. max)
-
-"D": ["raw" data (from input sensors and/aggregators), if required]
-
-]
-
-}
-```
-
-Delegation Messages: D Topic
-----------------------------
 
 Event Messages: V Topic
 -----------------------
@@ -769,34 +775,11 @@ predefined limit)
 
 "v" paths include a type as the second element and priority as the third
 element(e.g. "v/e/1" is a high priority error)
-## Coordinator Messaging
-Message between the platform and the deployment pass through the coordinator, in addition, Coordinator topics ("Z" and "z") are subscribed to by all coordinators (i.e. the active coordinator and any standby devices). All coordinators can publish on "z", but only the active coordinator can publish on "Z"
- 
-## Delegator Messaging
-Each delegator has a unique topic ("B/<delegator_path")
-
-Delegators will forward received messages to:
-
-- another delegator
-- a specified controller to carry out an action
-- a group of controllers to carry out a number of linked actions
-
-## Sensor Messaging
-
-Sensors do not subscribe to any topics, and each sensor has a unique topic ("s/<sensor_path>") which it publishes on.
-
-## Commander Messaging
-Commanders are different from other roles.
-
-Firstly, commanders do not have any topics of their own and subscribe to any number of sensor or aggregator topics and publish on pre-configurated delegator topics.
-
-Secondly, in order to integrate with other systems (outside of HIP) the commander also includes REST services to allow other systems to control HIP
-
-
------------
 
 Coordinator sync: Z Topic
 -------------------------
+
+Message between the platform and the deployment pass through the coordinator, in addition, Coordinator topics ("Z" and "z") are subscribed to by all coordinators (i.e. the active coordinator and any standby devices). All coordinators can publish on "z", but only the active coordinator can publish on "Z"
 
 Coordinator sync message are sent between active and "hot-swap"
 Coordinators, and published from or subscribed to by other devices or
@@ -816,6 +799,16 @@ This has not been fully considered to date, but would expect to re-use
 concepts from other active-passive architecture
 
 
+
+
+Commander Messaging
+-------------------
+
+Commanders are different from other roles in that:
+
+- commanders do not have any topics of their own and subscribe to any number of sensor or aggregator topics and publish on pre-configurated delegator topics.
+
+- in order to integrate with other systems (outside of HIP) the commander also includes REST services to allow other systems to control HIP
 
 
 Error Messages: E Topic
@@ -875,8 +868,6 @@ encoded handler file and save it with the name specified in "id" – this
 "id" filename can then be referenced in configuration messages (e.g. for
 Aggregator or Sensor Operations)
 
-Operational Messages
-====================
 
 Message brokering: B Topic
 --------------------------
@@ -924,14 +915,14 @@ Message:
 ```
 1.  coordinator publishes on "B/5"
 
-2.  delegators subscribed to "B/5, publishes same message on "B/5/V"
+2.  delegator subscribed to "B/5, publishes same message on "B/5/V"
 
-3.  delegators subscribed to "B/5/V" publishes same message on "B/5/V/6"
+3.  delegator subscribed to "B/5/V" publishes same message on "B/5/V/6"
 
-4.  delegators subscribed to "B/5/V/6", publishes same message on
+4.  delegator subscribed to "B/5/V/6", publishes same message on
     "B/5/V/6/4"
 
-5.  delegators subscribed to "B/5/V/6/4", publishes **included command
+5.  delegator subscribed to "B/5/V/6/4", publishes **included command
     message** on "X/1/2/3/C/2"
 
 6.  device subscribed to " X/1/2/3/C/2" executes the command
