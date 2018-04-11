@@ -2,7 +2,7 @@
 
 HIP is a high level protocol for the Internet of Things. 
 
-At the core of HIP is the device, an abstract representation of an IoT thing/device/gateway. Rather than focusing on the physical device configuration, HIP is concerned about how each device can add value to an IoT deployment. HIP achieves this by defining a number of roles which can be deployed and moved across any device.
+At the core of HIP is the device, an abstract representation of an IoT thing/device/gateway. Rather than focusing on the physical device configuration, HIP is concerned about how each device can add value to an IoT deployment. HIP achieves this by defining a number of roles which can be deployed and moved across devices.
 
 - <b>Sensor</b>, to collect telemetry data
 - <b>Controller</b>, to interact with real-world controls
@@ -29,17 +29,29 @@ HIP is not perscriptive on how data is processed by an aggregator. Instead, HIP 
 
 Handlers are transferred to the device from the platform and are responsible for providing the specific aggregator functionality (e.g. summarise the data across a number of sensors). Handlers could be OSGi bundles, python/javascript files etc. 
 
-Configuration data is sent to the underlying device as part of the device configuration. This data will define the channels to subscribe to and publish on, the required handlers to use as well as any configuration requirements.
+Configuration data is sent to the underlying device as part of the device configuration. This data defines the topics to subscribe to and publish on, the required handlers to use as well as any configuration requirements (e.g. polling frequency for a sensor).
 
-In order to move an aggregator from one device to another, each device is sent an updated configuration, removing the aggregator from one device and adding it to another
+In order to move an aggregator from one device to another, each device is sent an updated configuration, removing the aggregator from one device and adding it to another.
+
+In addition to the specific functionality provided by the aggregator handler, all communications from devices to the platform is routed through one or more aggregators.
 
 ## Delegator
-Delegators act as intermediaries between the platform and controllers and are used to group "similar" controllers together. By similar, this could be all controllers interfacing with a specific type of real-world device, or all controllers interfacing with devices in a particular location (so, for a smart office, this could be all lighting controllers or all controllers - lighting, AC etc. on a particular floor of the building)
+Delegators act as intermediaries between the platform and controllers and are used to group "similar" controllers together. By similar, this could be all controllers interfacing with a specific type of real-world device, or all controllers interfacing with devices in a particular location (so, for a smart office, this could be all lighting controllers in hte building or all controllers - lighting, AC etc. on a particular floor of the building)
+
+The rationale for delegators is two-fold. A single command can be used to update a group of controllers (e.g. set the desired temperature across a number of HVAC units) and also allow for local or offline interaction with the real-world (this is discussed in more detail when looking at the Commander)
+
+All communications from the platform to a device (with the exception of the coordinator detailed below) is routed through one or more delegators.
 
 ## Commander
+
 Commanders can communicate directly with specified aggregators and delegators and allow for monitoring and control of the local environment without any reliance on the platform. In this way, commanders support off-line access to an IOT deployment as well as reducing the bandwidth requirements between the deployment and the platform.
+
+Unlike other roles, the Commander does not rely solely on MQTT messaging. Rest endpoints are deployed to the device as part of the role and are used to interact with user-facing front-ends (e.g. web or mobile applications)
+
 ## Coordinator
-THe coordinator is the edge device of the deployment and the only device which can communicate directly with the platform.
+
+The coordinator is the edge device of the deployment and the only device which can communicate directly with the platform. There is only one active Coordinator in a deployment at any time, but any number of devices can be configured with the role. Coordinators communicate on specific message topics to monitor the status of the active coordinator and "elect" a replacement in the event that the active coordinator is unavailable.
+ 
 # Messaging
 Work to date has leverage MQTT as the underlying messaging protocol. Each device and deployed role has a unique set of MQTT topics to publish on or subscribe to.
 
@@ -47,60 +59,5 @@ MQTT wildcards are not used as part of the protocol.
 
 Messages from the platform to the deployment start with an uppercase letter, while messages sent from devices start with a lowercase letter. This allows for responses to each message class (e.g. "X/some_path" message to execute a command will be replied to with "x/same_path")
 
-The messaging within HIP is outlined below, more details can be found in the <a href="specification.md">specification document</a> (this is still very early Work in Progress)
-## Device Messaging
+The messaging within HIP is  detailed in the [specification document](specification.md) (this is still very early Work in Progress)
 
-These messages support the underlying device and manage the deployment/removal of roles on a device.
-
-Each message below can pass through zero or more aggregators (when sent TO the platform from the specified device) or delegators (when sent FROM the platform to the specified device)
-### Onboarding
-Devices can be added to an HIP implementation through the Onboarding message topic ("O")
-
-As part of the Onboarding process, a unique identifier and associated paths (MQTT topics) are assigned to the device.
- 
-### Configuration
-Configuration messages ("C/<device_path>") are sent from the platform to update the configuration of a device (e.g. add/remove roles, enable/disable an MQTT broker on the device etc.)
-
-After applying the updated configuration, the device replies to the platform with its updated configuration (on topic "c/<device_path>")
-### Health
-Healtn message ("h/<device_path"), are periodically sent from devices to the platform and contain summary information on the device resources (e.g. memory usage, disk I/O and free space and/or the output from commands like "top" etc.)
-
-The platform may also poll a particular device (e.g. before deploying additional roles) by publishing on the topic "H/<device_path>"
-## Aggregator Messaging
-Aggregators subscribe to one or more sensors or  other aggregators. Each implementation of an aggregator has a specific aggregator path (MQTT topic) associated with it. 
-
-All output from the aggregator is published on "a/<agg_path", where agg_path is the path assigned to a particular aggregator.
-
-Handlers are deployed as part of the aggregator and provide the functionality to process the input data (e.g. statistical or mathematical calculations, filtering of audio/video streams etc.)
-
-A core goal of HIP is to help standardise how IOT is deployed without restricting or prescribing how it is used. The ability of Aggregators to process any type of input data in any way is key to achieving this goal.
-
-## Controller Messaging
-Each Controller has a unique controller_path and subscribes to topic ("X/<controller_path>") - accepting eXecution messages from the platform or a Commander via one or more delegators.
- 
-## Coordinator Messaging
-Message between the platform and the deployment pass through the coordinator, in addition, Coordinator topics ("Z" and "z") are subscribed to by all coordinators (i.e. the active coordinator and any standby devices). All coordinators can publish on "z", but only the active coordinator can publish on "Z"
- 
-## Delegator Messaging
-Each delegator has a unique topic ("B/<delegator_path")
-
-Delegators will forward received messages to:
-
-- another delegator
-- a specified controller to carry out an action
-- a group of controllers to carry out a number of linked actions
-
-## Sensor Messaging
-
-Sensors do not subscribe to any topics, and each sensor has a unique topic ("s/<sensor_path>") which it publishes on.
-
-## Commander Messaging
-Commanders are different from other roles.
-
-Firstly, commanders do not have any topics of their own and subscribe to any number of sensor or aggregator topics and publish on pre-configurated delegator topics.
-
-Secondly, in order to integrate with other systems (outside of HIP) the commander also includes REST services to allow other systems to control HIP
-
-
-# Want to learn more....
-Take a look at <a href="specification.md">the specification</a> for the latest draft. It's still very early days, so feel free to help out and contribute to the specification

@@ -4,16 +4,14 @@ Introduction
 Overview
 --------
 
-The Hierarchical Internet of Things Protocol (HIP) is a communication protocol for
-the Internet of Things (IOT). It is designed to provide a full suite of
-messaging for the configuration, management and operational
-functionality of any IOT use case.
+The Hierarchical Internet of Things Protocol (HIP) is a high-level communications protocol for
+the Internet of Things (IOT). It provides for a number of roles/functions which can be deployed as part of an IOT implementation 
+in order to increase scalability, usability and interoperability
 
-In addition to traditional IOT messaging, HIP includes message types
-which are specifically designed to support delegation of control as well
+HIP includes message types which are specifically designed to support delegation of control as well
 as data aggregation and processing at or near the source of the data.
 This delegation and local data processing is where HIP gets its name,
-enabling IOT to move from a traditional flat structure to a hierarchy of
+enabling IOT to move from a traditional flat structure (of devices connneced to the cloud) to a hierarchy of
 devices and associated roles in order to deliver maximum scalability.
 
 There is also a specific message type aimed at increased
@@ -74,7 +72,7 @@ Handlers are a combination of configuration settings and executables or
 scripts which can provide additional functionality within a deployment.
 In our partial NodeJS implementation, handler files are JavaScript files
 which are Base64 encoded as part of Handler messages sent to specific
-devices. These handler files could also be executable files, byte-code
+devices. These handler files could also be executable files, byte-code, Kura bundles
 or any other type of files capable of being executed on a device.
 
 ### Cloud-side
@@ -107,7 +105,7 @@ Paths for part of each topic sent and received by a deployment. For
 example, a health message would take the form "h/<device path>",
 where <device path> is the unique path for the associated device.
 
-Each role deployed to a device also has a unique path. For example, a
+Each role deployed to a device also has one or more unique paths. For example, a
 physical device may have multiple sensors and/or controllers attached,
 with each one having its own unique path. This facilitates the movement
 of roles across devices without the need for widespread configuration
@@ -125,7 +123,7 @@ roles and associated handler files
 
 This is the base implementation for any component within a deployment. A
 device is capable of receiving configuration data from the platform and
-can transfer Health messages (described later) and Error messages to the
+can transfer Health and Error messages to the
 platform.
 
 #### Role: Actuator/controller
@@ -134,7 +132,7 @@ Controllers are responsible for interfacing with real world elements of
 the deployment such as heating and lighting controls etc. Handler files
 are deployed to devices to implement the required functionality, while
 the configuration message sent from the platform defines the required
-parameters, including a list of all commands and their parameters.
+settings (e.g. GPIO pins to use) as well as a list of all commands and their parameters.
 
 A device can have any number of configured controllers, with each
 controller being assigned its own messaging topic.
@@ -145,20 +143,21 @@ Aggregators are a key component in HIP and allow the deployment to
 process data locally rather than relying on cloud-side resources. In our
 selected use case, a number of temperature sensors, distributed across
 an open-plan area, can transmit readings to an aggregator which can
-calculate the mean, max and min temperature for the overall area. This
+calculate the mean, max and min temperature for the specific area. This
 data can then be fed to another aggregator which calculates the
 temperature across the entire floor. Based on the configuration and the
 handler file, raw sensor data can be included or omitted from the data
 transferred cloud-side.
 <img src="media/hierarchy.png">
-#### Role: Broker 
 
-Brokers are organised in a hierarchical structure and pass encapsulated
-messages along to the relevant device or role. A broker topic is
+#### Role: Delegators 
+
+Delegators are organised in a hierarchical structure and pass encapsulated
+messages along to the relevant device or role. A delegator's topic is
 included in each message and defines the path to follow from the
-coordinator to the recipient device or role.
+coordinator to the recipient device(s) or role(s).
 
-Similar to Aggregators, Brokers are designed to offer maximum
+Similar to Aggregators, delegators are designed to offer maximum
 scalability across a deployment by having commands and other platform
 messages chained across multiple levels.
 
@@ -168,7 +167,7 @@ The Coordinator is the only deployment-side device with external
 connectivity. Each deployment has only one active Coordinator at any
 time. All messages between the cloud-side and deployment-side pass
 through the Coordinator, allowing for targeted hardening and security
-measures and decreasing the deployment’s attack surface.
+measures and decreasing the deployment's attack surface.
 
 #### Role: Sensor
 
@@ -181,10 +180,12 @@ having its own messaging topic.
 
 #### Role: Commander
 
-A commander is a local user-interface for the deployment. Unlike the UI
+A commander provides an offline or local interface for the deployment. Unlike the
 component specified as part of the cloud-side, a Commander can
-communicate directly with specific aggregators and brokers via their
-messaging topics and subscriptions.
+communicate directly with specific aggregators and delegators via their
+messaging topics and subscriptions. 
+
+This allows for local (i.e. independent of the cloud-side components) interaction and monitoring of the real-world environment
 
 In our selected use-case, a Commander would likely take the form of a
 wall mounted touchscreen to control and monitor the environment in the
@@ -200,7 +201,7 @@ The diagram below illustrates a minimal HIP implementation.
 
 D: A HIP Device
 
-S: Sensor – connected directly to a device or integrated via MQTT or
+S: Sensor connected directly to a device or integrated via MQTT or
 another protocol. Configuration data from the Platform and a handler
 file are used to integrate the real-world sensor into HIP
 
@@ -219,12 +220,12 @@ min and max temperatures for an open plan office, based on the readings
 from relevant sensors and subsequent aggregators could calculate the
 average temperature for a floor/building etc.
 
-B: Brokers act as intermediaries between the platform and the
-controllers - so the broker in the diagram could control all the
+B: delegators act as intermediaries between the platform and the
+controllers - so the delegator in the diagram could control all the
 lighting/heating controls for the open plan office.
 
 CR: Coordinator - essentially this is the gateway device for a
-deployment – a single point in and out of the deployment and the only
+deployment - a single point in and out of the deployment and the only
 local device which can communicate with the platform. In the event of a
 failure, this role can be moved to another device through the use of
 Coordinator messages across the deployment.
@@ -255,17 +256,17 @@ remove similar looking (0 and O etc.) from the topics.
 
 The first character of the topic string represents the category of
 message being sent (discussed later in the document) and also the
-"direction of the message" – capital letters are used to denote a
+"direction of the message" - capital letters are used to denote a
 message from the platform to the deployment, while lower case letters
-are used for messages travelling in the opposite direction.
+are used for messages traveling in the opposite direction.
 
 Topics are managed "platform-side" and it is the responsibility of the
 platform to ensure that each device and role within a particular
 deployment has a unique topic associated with it.
 
 The list below highlights the number of distinct topics for a particular
-topic length, for example "?/a/b/c/d ", where "?" is the type message,
-for example, a health message from a device could use the following
+topic length, for example "?/a/b/c/d ", where "?" is the type message.
+For example, a health message from a device could use the following
 topic "h/1/2/5/B"
 
 -   2 levels ("?/a") = 58 devices and roles
@@ -284,7 +285,7 @@ device and each role, deployment side components do not need to be aware
 of the relevant chains and paths required to transmit messages across
 the deployment.
 
-Broker messages will always include the chain of brokers (in the form of
+delegator messages will always include the chain of delegators (in the form of
 a topic) and the destination address (topic) for the relevant device or
 role, and Aggregator configuration will include the topics for the
 relevant subscriptions and publications - this way devices do not need
@@ -292,34 +293,23 @@ to maintain internal tables of paths etc. and roles can be moved across
 devices without the need to update the paths on multiple devices across
 the deployment.
 
-Control messages
+Messages by Role
 ================
 
-Coordinator sync: Z Topic
--------------------------
+## Device Messaging
 
-Coordinator sync message are sent between active and "hot-swap"
-Coordinators, and published from or subscribed to by other devices or
-the platform. These message are designed to ensure that there is one,
-and only one, active coordinator in the deployment.
+These messages support the underlying device and manage the deployment/removal of roles on a device.
 
-Capital letters ("Z") are used in messages from the active Coordinator,
-while any "hot-swap" or passive Coordinators will send message on the
-lower case topic ("z").
-
-Coordinator message topics are different from most in that there are no
-additional elements within the within the topic path. All coordinators
-subscribe to the coordinator topics ("Z" and "z") and can publish on
-"z", but only the currently active Coordinator can publish on ("Z")
-
-This has not been fully considered to date, but would expect to re-use
-concepts from other active-passive architecture
+Each message below can pass through zero or more aggregators (when sent TO the platform from the specified device) or delegators (when sent FROM the platform to the specified device)
 
 On-boarding: O Topic
 --------------------
+Devices can be added to an HIP implementation through the Onboarding message topic ("O")
+
+As part of the Onboarding process, a unique identifier and associated paths (MQTT topics) are assigned to the device.
 
 HIP devices which do not have an active configuration, e.g. a new
-device which has just been connected to the deployment’s network, will
+device which has just been connected to the deployment's network, will
 publish an On-boarding message on topic "o", containing a unique
 identifier for that device (typically the MAC address of the active
 network interface).
@@ -362,20 +352,23 @@ configured from the platform.
 
 Device Config: C Topic
 ----------------------
+Configuration messages ("C/<device_path>") are sent from the platform to update the configuration of a device (e.g. add/remove roles, enable/disable an MQTT brokers on the device etc.)
+
+After applying the updated configuration, the device replies to the platform with its updated configuration (on topic "c/<device_path>")
 
 Device configuration is managed via the Platform through the use of
 message on the "C/<path>" and "c</path>" topics. A new
 configuration can be pushed to a specific device from the platform by
-pubishing on "C/<device path>", where <device path> is the
+pubishing on "C/<device_path>", where <device_path> is the
 unique path for the relevant device (e.g. a device which has just been
 on-boarded).
 
 Once the device has applied the relevant configuration, it responds to
-the platform on topic "c/<device path>", with the updated
+the platform on topic "c/<device_path>", with the updated
 configuration data. In the event that the platform has tried to
 configure an unsupported function (e.g. if the device is not fully HIP
 compatible, or does not support all roles), the unsupported functions
-will be omitted from the device’s response.
+will be omitted from the device's response.
 
 In both cases, the message structure is the same.
 
@@ -401,15 +394,15 @@ the specified device, including any roles deployed to the device.
 |                                  | name                                                                | User friendly name for the device                                                                                                                                   |
 |                                  | description                                                         | A description of the device                                                                                                                                         |
 |                                  | devicePath                                                          | Unique path for the device topics                                                                                                                                   |
-| Device->MQTTServers           | Configuration data for any MQTT brokers that the device connects to |
-| Roles->Broker                 | An array of zero or more broker implementations                     |
-|                                  | _id                                                                | Unique ID for the particular broker implementation                                                                                                                  |
+| Device->MQTTServers           | Configuration data for any MQTT delegatorss that the device connects to |
+| Roles->delegators                 | An array of zero or more delegators implementations                     |
+|                                  | _id                                                                | Unique ID for the particular delegators implementation                                                                                                                  |
 |                                  | path                                                                | Unique path for this implementation                                                                                                                                 |
 |                                  | deployment                                                          | Deployment ID - part of orphaned devices, discussed later                                                                                                           |
-|                                  | description                                                         | User friendly description of what the broker does                                                                                                                   |
+|                                  | description                                                         | User friendly description of what the delegators does                                                                                                                   |
 |                                  | name                                                                | User friendly name for the implementation                                                                                                                           |
 |                                  | handler                                                             | Handler file for required functionality                                                                                                                             |
-|                                  | active                                                              | Boolean – is the broker implementation active?                                                                                                                      |
+|                                  | active                                                              | Boolean – is the delegators implementation active?                                                                                                                      |
 | Role->Coordinator             | m2mMqttport                                                         | Port number for the Coordinator Link on the Platform                                                                                                                |
 |                                  | m2mMqttServer                                                       | IP Address or DNS name of the Coordinator Link                                                                                                                      |
 |                                  | active                                                              | Boolean - Is this the active Coordinator?                                                                                                                           |
@@ -474,19 +467,19 @@ interpretation
 
 "roles": { //array of installed roles on the device
 
-"broker": [ //array of installed brokers
+"delegators": [ //array of installed delegatorss
 
 {
 
-"_id": "", //unique id for this broker
+"_id": "", //unique id for this delegators
 
 "path":"", // topic to subscribe to
 
 "deployment": "", // unique id for the relevant deployment
 
-"description": "", // a description of what the broker does
+"description": "", // a description of what the delegators does
 
-"name": "", // name for the broker
+"name": "", // name for the delegators
 
 "handler": "", // unique ID for the associated handler file
 
@@ -670,8 +663,13 @@ sensor on this topic
 
 }
 ```
+
+
 Health Messages: H Topic
 ------------------------
+Health message ("h/<device_path>"), are periodically sent from devices to the platform and contain summary information on the device resources (e.g. memory usage, disk I/O and free space and/or the output from commands like "top" etc.)
+
+The platform may also poll a particular device (e.g. before deploying additional roles) by publishing on the topic "H/<device_path>"
 
 Health messages are designed to inform the platform of the current state
 of each device in terms of storage, memory, network and CPU utilisation.
@@ -681,14 +679,144 @@ under utilisation of devices which could result in inefficiencies or
 bottlenecks across a deployment.
 
 The platform sends an empty health message to a particular device on
-topic "H/<device path>", where <device path> is the unique
+topic "H/<device_path>", where <device_path> is the unique
 path to the relevant device. The device will use a range of Operating
 System commands or utilities (e.g. "top", "df" etc.) to collate a set of
-statistics to return to the platform on topic "h/<device path>"
+statistics to return to the platform on topic "h/<device_path>"
 
 The structure of the health message has not been defined to date, and it
 may be the case that different types of data could be requested by the
 platform by tailoring the initial, "H", message sent.
+
+Aggregation Messages: A topic
+-----------------------------
+Aggregators subscribe to one or more sensors or  other aggregators. Each implementation of an aggregator has a specific aggregator path (MQTT topic) associated with it. 
+
+All output from the aggregator is published on "a/<agg_path", where agg_path is the path assigned to a particular aggregator.
+
+Handlers are deployed as part of the aggregator and provide the functionality to process the input data (e.g. statistical or mathematical calculations, filtering of audio/video streams etc.)
+
+A core goal of HIP is to help standardise how IOT is deployed without restricting or prescribing how it is used. The ability of Aggregators to process any type of input data in any way is key to achieving this goal.
+
+
+
+Execution messages: X Topic
+---------------------------
+Each Controller has a unique controller_path and subscribes to topic ("X/<controller_path>") - accepting eXecution messages from the platform or a Commander via one or more delegators.
+
+
+Execution messages are sent to a Controller in order to execute a
+command as specified in the Controller's configuration.
+
+In addition to the Platform, which can publish execution messages on
+topic "X", Commanders within the deployment can also publish execution
+messages using the lower case variant, "x". In either case, these
+messages specify a controller, a command to execute and zero or more
+parameters for the command.
+
+
+command:
+```javascript
+{
+
+"c":<the id of the command to execute>,
+
+"p":[
+
+{"p1":<the first parameter>},
+
+...
+
+{"pn":<the nth parameter}
+
+]
+
+}
+```
+Aggregation Results: A topic
+----------------------------
+
+- "a","aggregation output from an aggregator, can be sent via the
+coordinator, or as an input to another aggregator
+```javascript
+{
+
+"t":<timestamp>,
+
+[
+
+"1": first data element (e.g. average (mean) value)
+
+"2": second data element (e.g. max)
+
+"D": ["raw" data (from input sensors and/aggregators), if required]
+
+]
+
+}
+```
+
+Delegation Messages: D Topic
+----------------------------
+
+Event Messages: V Topic
+-----------------------
+
+- "V": platform notifies deployment/device of an event..??
+
+- "v": device notifies platform of an event (e.g. temperature exceeds
+predefined limit)
+
+"v" paths include a type as the second element and priority as the third
+element(e.g. "v/e/1" is a high priority error)
+## Coordinator Messaging
+Message between the platform and the deployment pass through the coordinator, in addition, Coordinator topics ("Z" and "z") are subscribed to by all coordinators (i.e. the active coordinator and any standby devices). All coordinators can publish on "z", but only the active coordinator can publish on "Z"
+ 
+## Delegator Messaging
+Each delegator has a unique topic ("B/<delegator_path")
+
+Delegators will forward received messages to:
+
+- another delegator
+- a specified controller to carry out an action
+- a group of controllers to carry out a number of linked actions
+
+## Sensor Messaging
+
+Sensors do not subscribe to any topics, and each sensor has a unique topic ("s/<sensor_path>") which it publishes on.
+
+## Commander Messaging
+Commanders are different from other roles.
+
+Firstly, commanders do not have any topics of their own and subscribe to any number of sensor or aggregator topics and publish on pre-configurated delegator topics.
+
+Secondly, in order to integrate with other systems (outside of HIP) the commander also includes REST services to allow other systems to control HIP
+
+
+-----------
+
+Coordinator sync: Z Topic
+-------------------------
+
+Coordinator sync message are sent between active and "hot-swap"
+Coordinators, and published from or subscribed to by other devices or
+the platform. These message are designed to ensure that there is one,
+and only one, active coordinator in the deployment.
+
+Capital letters ("Z") are used in messages from the active Coordinator,
+while any "hot-swap" or passive Coordinators will send message on the
+lower case topic ("z").
+
+Coordinator message topics are different from most in that there are no
+additional elements within the within the topic path. All coordinators
+subscribe to the coordinator topics ("Z" and "z") and can publish on
+"z", but only the currently active Coordinator can publish on ("Z")
+
+This has not been fully considered to date, but would expect to re-use
+concepts from other active-passive architecture
+
+
+
 
 Error Messages: E Topic
 -----------------------
@@ -697,7 +825,7 @@ Error messages sent from the deployment have a different structure to
 most other types of messages in that the second and third elements
 define the role associated with the error and the type of error
 experienced. For example, a message topic "e/b/1/<device path>"
-contains an error of type 1, "no path to device", relating to a broker
+contains an error of type 1, "no path to device", relating to a delegators
 on the device on path <device path>.
 
 The following table outlines the error types and priority ranges for the
@@ -709,7 +837,7 @@ deployment
 | e/a/2 | Aggregation error – data in incorrect format       |                                                                            |
 | e/a/3 | Aggregation error – received data outside of range |                                                                            |
 |       |                                                    |                                                                            |
-| e/b/1 | Broker Error – no path to device                   | The device path has been omitted from the broker message                   |
+| e/b/1 | delegators Error – no path to device                   | The device path has been omitted from the delegators message                   |
 |       |                                                    |                                                                            |
 | e/c/1 | Controller Error – invalid command id              | The supplied does not match a command on the controller                    |
 | e/c/2 | Controller Error – required parameter not supplied | One or more required parameters for the specified command was not supplied |
@@ -753,8 +881,8 @@ Operational Messages
 Message brokering: B Topic
 --------------------------
 
-Messages from the Platform are encapsulated in broker messages before
-being published to the deployment. Broker messages do not have a
+Messages from the Platform are encapsulated in delegators messages before
+being published to the deployment. delegators messages do not have a
 lowercase variant as they will always travel away from the platform.
 
 For example:
@@ -765,7 +893,7 @@ the corresponding message to be sent to the controller, while "p" is the
 destination for the message. (similarly, "C/5/4/3/2/1" could be used to
 send configuration data to device "5/4/3/2/1")
 
-The broker topic, "t", is the hierarchy of brokers used to route the
+The delegators topic, "t", is the hierarchy of delegatorss used to route the
 message.
 
 Path: see items 1 – 5 below
@@ -796,14 +924,14 @@ Message:
 ```
 1.  coordinator publishes on "B/5"
 
-2.  Broker subscribed to "B/5, publishes same message on "B/5/V"
+2.  delegators subscribed to "B/5, publishes same message on "B/5/V"
 
-3.  Broker subscribed to "B/5/V" publishes same message on "B/5/V/6"
+3.  delegators subscribed to "B/5/V" publishes same message on "B/5/V/6"
 
-4.  Broker subscribed to "B/5/V/6", publishes same message on
+4.  delegators subscribed to "B/5/V/6", publishes same message on
     "B/5/V/6/4"
 
-5.  Broker subscribed to "B/5/V/6/4", publishes **included command
+5.  delegators subscribed to "B/5/V/6/4", publishes **included command
     message** on "X/1/2/3/C/2"
 
 6.  device subscribed to " X/1/2/3/C/2" executes the command
@@ -824,72 +952,7 @@ numeric temperature or humidity values through to multi-dimensional data
 and even voice and video data. This allows HIP to be deployed across a
 vast range of use cases and deployment types.
 
-Execution messages: X Topic
----------------------------
 
-Execution messages are sent to a Controller in order to execute a
-command as specified in the Controller’s configuration.
-
-In addition to the Platform, which can publish execution messages on
-topic "X", Commanders within the deployment can also publish execution
-messages using the lower case variant, "x". In either case, these
-message specific a controller, a command to execute and zero or more
-parameters for the command.
-
-Unlike other message types, execution messages are encapsulated by
-Broker messages, and cannot be sent directly to a controller. The
-command element within an execution message is defined below
-
-command:
-```javascript
-{
-
-"c":<the id of the command to execute>,
-
-"p":[
-
-{"p1":<the first parameter>},
-
-...
-
-{"pn":<the nth parameter}
-
-]
-
-}
-```
-Aggregation Results: A topic
-----------------------------
-
-- "a","aggregation output from an aggregator, can be sent via the
-coordinator, or as an input to another aggregator
-```javascript
-{
-
-"t":<timestamp>,
-
-[
-
-"1": first data element (e.g. average (mean) value)
-
-"2": second data element (e.g. max)
-
-"D": ["raw" data (from input sensors and/aggregators), if required]
-
-]
-
-}
-```
-Event Messages: V Topic
------------------------
-
-- "V": platform notifies deployment/device of an event..??
-
-- "v": device notifies platform of an event (e.g. temperature exceeds
-predefined limit)
-
-"v" paths include a type as the second element and priority as the third
-element(e.g. "v/e/1" is a high priority error)
 
 Query Messages: Q Topic
 -----------------------
@@ -907,6 +970,8 @@ from the deployment (requires "smart" roles)
 
 - "r": device responds to the platform - e.g. confirm a role has been
 moved to a device
+
+
 
 Use cases 
 ==========
