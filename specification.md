@@ -100,37 +100,37 @@ specific components.
  - [Device](#term-device)
  
 
-##**TERM** Platform
+##TERM Platform
 
 Platform refers to typical server-side components offered as part of a SaaS or
 cloud solution for IOT.
 
-##**TERM** Deployment
+##TERM Deployment
 
 In our selected use case, a smart office building, the term deployment refers to
 all IOT elements contained within the building.
 
-##**TERM** Message
+##TERM Message
 
 Work to date on HIP has been based on MQTT and a message is any communication
 sent on an MQTT topic. However, this should be considered non-normative and
 there should be no reason why other protocols could be used in place of, or in
 addition to, MQTT.
 
-##**TERM** Network
+##TERM Network
 
 In the context of HIP, the network refers to the underlying network for the
 messaging protocol. Like MQTT, there is no apparent limitation in terms of what
 network protocols are used.
 
-##**TERM** Topic
+##TERM Topic
 
 The term topic is taken from the MQTT specification and is used in that context
 throughout this document. Channels and Paths for other messaging protocols
 should be equally applicable and HIP should be fully implementable using any
 alternative to MQTT.
 
-##**TERM** Handler
+##TERM Handler
 
 Handlers are a combination of configuration settings and executables or scripts
 which can provide additional functionality within a deployment. In our partial
@@ -139,7 +139,7 @@ encoded as part of Handler messages sent to specific devices. These handler
 files could also be executable files, byte-code, Kura bundles or any other type
 of files capable of providing functionality to a device.
 
-##**TERM** Cloud-side
+##TERM Cloud-side
 
 "Cloud-side" refers to typical SaaS offerings, including remote administration
 tools and user-facing components. The cloud-side has been divided into a number
@@ -161,7 +161,7 @@ a deployment.
 Throughout the document, unless called out at the time, the term Platform refers
 to all cloud-side elements within IOT.
 
-##**TERM** Path
+##TERM Path
 
 Paths for part of each topic sent and received by a deployment. For example, a
 health message would take the form "h/", where is the unique path for the
@@ -172,7 +172,7 @@ physical device may have multiple sensors and/or controllers attached, with each
 one having its own unique path. This facilitates the movement of roles across
 devices without the need for widespread configuration change.
 
-##**TERM** Deployment-side
+##TERM Deployment-side
 
 "Deployment-side" refers to the local IOT implementation - for example, our
 smart building or a production line in a factory. Within the Deployment-side,
@@ -180,7 +180,7 @@ generic devices are configured via messages sent from the platform and their
 functionality is determined by their configured roles and associated handler
 files
 
-##**TERM** Device
+##TERM Device
 
 This is the base implementation for any component within a deployment. A device
 is capable of receiving configuration data from the platform and can transfer
