@@ -147,7 +147,7 @@ of subcomponents offering specific functionality. While some of these components
 and their functionality is outside of the scope of HIP, they are included or
 referenced here for the sake of completeness.
 
-###Platform, UI and Coordinator Link
+### Platform, UI and Coordinator Link
 
 Strictly speaking, the Coordinator Link is the only cloud-side element within
 the scope of HIP. The Platform component refers to client or user facing tools,
@@ -190,17 +190,17 @@ Health and Error messages to the platform.
 
 The following roles have been defined as part of HIP and are included as part of the specification:
 
-- [Controller](#role-controller)
+- [Controller](#_role_-controller)
 
-- [Aggregator](#role-aggregator)
+- [Aggregator](#_role_-aggregator)
 
-- [Delegator](#role-delegator)
+- [Delegator](#_role_-delegator)
 
-- [Coordinator](#role-coordinator)
+- [Coordinator](#_role_-coordinator)
 
-- [Sensor](#role-sensor)
+- [Sensor](#_role_-sensor)
 
-- [Commander](#role-commander)
+- [Commander](#_role_-commander)
 
 ## _ROLE_ controller
 
