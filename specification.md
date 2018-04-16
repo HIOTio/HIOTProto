@@ -31,7 +31,7 @@ Introduction
 # Overview
 
 
-The Hierarchical Internet of Things Protocol (HIP) is a high-level
+[Eclipse](https://www.eclipse.org) Hierarchical Internet of Things Protocol (HIP) is a high-level
 communications protocol for the Internet of Things (IOT). It provides for a
 number of roles/functions which can be deployed as part of an IOT implementation
 in order to increase scalability, usability and interoperability
@@ -269,6 +269,8 @@ office or manage conferencing equipment in a meeting room.
 
 # Messaging
 
+Work to date has focused on using MQTT for all messaging between devices, but there is no reason why other protocols could not be used.
+
 ## Message Structure
 
 In HIP, MQTT topics are restricted to single character, base 58 elements. This
@@ -306,7 +308,7 @@ As the platform is responsible for maintaining the configuration of each device
 and each role, deployment side components do not need to be aware of the
 relevant chains and paths required to transmit messages across the deployment.
 
-delegator messages will always include the chain of delegators (in the form of a
+[Delegator messages](#delegator-messaging) will always include the chain of [delegators](#role-delegator) (in the form of a
 topic) and the destination address (topic) for the relevant device or role, and
 Aggregator configuration will include the topics for the relevant subscriptions
 and publications - this way devices do not need to maintain internal tables of
@@ -367,11 +369,11 @@ For example:
 
 Topic: "o",
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```javascript
  Message: {
     "deviceID":"00-01-d3-33-76-9b"
  }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
 All Aggregators subscribe to the On-boarding channel ("o") and upon receiving an
 On-boarding message will request a new device path from the Platform by
@@ -405,7 +407,7 @@ The structure of a handler message is as follows:
 
 Topic: "N/device-path"
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```javascript
 Message: {
 
 "id": <the unique identifier for the handler>
@@ -413,7 +415,7 @@ Message: {
 "handler": <base64 encoded representation of the handler file>
 
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
 On receipt of the message, a device will need to decode the Base64 encoded
 handler file and save it with the name specified in "id" – this "id" filename
@@ -445,13 +447,15 @@ In both cases, the message structure is the same.
 
 Topic: "C/" or "c/"
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```javascript
 Message: {
 
-&lt; configuration data as specified in [Message Specifications below](#msgspec) &gt;
+"c":<configuration data>
 
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+&lt;configuration data&gt;  is specified in [Message Specifications below](#configuration-messages)
 
 #### DEVICE MESSAGE Health
 **Message Topic Prefix:** "H","h"
@@ -537,7 +541,7 @@ Commanders within the deployment can also publish execution messages on the same
 topic. In either case, these messages specify a controller, a command to execute
 and zero or more parameters for the command.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```javascript
     {
         
         "c":<the id of the command to execute>,
@@ -553,7 +557,7 @@ and zero or more parameters for the command.
             ]
     
     }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
 ### Delegator Messaging
 
@@ -784,7 +788,7 @@ specified device, including any roles deployed to the device.
 Below is a typical device configuration message, with comments to aid
 interpretation
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```javascript
 {
 
 "device": {
@@ -998,7 +1002,7 @@ sensor on this topic
 }]
 
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
 Orphaned devices (e.g. where the platform data has become corrupted and the
 deployment is no longer defined) can recreate the relevant deployment based on
