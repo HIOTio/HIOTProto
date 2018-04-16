@@ -1,8 +1,8 @@
 Introduction
 ============
 
-Contents
---------
+# Contents
+
 
 [Overview](#overview)
 
@@ -28,7 +28,7 @@ Contents
 [Message Specifications](#message-specifications)
 
 
-#Overview
+# Overview
 
 
 The Hierarchical Internet of Things Protocol (HIP) is a high-level
@@ -56,7 +56,7 @@ the protocol was developed in NodeJS with MQTT as the messaging protocol.
 While this document makes numerous references to MQTT throughout, there should
 no reason why other messaging protocols could not be used in its place.
 
-#Reference Implementation
+# Reference Implementation
 A reference implementation for HIP is under development and available on Github:
  - [Device](https://github.com/HIOTio/device)
  
@@ -73,7 +73,7 @@ Sample UI components:
 
 UI components are written in Angular 5, while all others are Javascript (NodeJS) solutions. Each of the above should be considered early work in progress and you should expect breaking changes between version until a stable release has been developed.
 
-#Terminology
+# Terminology
 
 HIP in intended to provide full scope communications for any IOT use-cases. In
 order to illustrate functionality, a number of terms are used to describe
@@ -100,30 +100,30 @@ specific components.
  - [Device](#term-device)
  
 
-##TERM Platform
+## **TERM** Platform
 
 Platform refers to typical server-side components offered as part of a SaaS or
 cloud solution for IOT.
 
-##TERM Deployment
+## **TERM** Deployment
 
 In our selected use case, a smart office building, the term deployment refers to
 all IOT elements contained within the building.
 
-##TERM Message
+## **TERM** Message
 
 Work to date on HIP has been based on MQTT and a message is any communication
 sent on an MQTT topic. However, this should be considered non-normative and
 there should be no reason why other protocols could be used in place of, or in
 addition to, MQTT.
 
-##TERM Network
+## TERM Network
 
 In the context of HIP, the network refers to the underlying network for the
 messaging protocol. Like MQTT, there is no apparent limitation in terms of what
 network protocols are used.
 
-##TERM Topic
+## **TERM** Topic
 
 The term topic is taken from the MQTT specification and is used in that context
 throughout this document. Channels and Paths for other messaging protocols
