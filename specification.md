@@ -100,37 +100,37 @@ specific components.
  - [Device](#term-device)
  
 
-## _TERM_ Platform
+## TERM Platform
 
 Platform refers to typical server-side components offered as part of a SaaS or
 cloud solution for IOT.
 
-## _TERM_ Deployment
+## TERM Deployment
 
 In our selected use case, a smart office building, the term deployment refers to
 all IOT elements contained within the building.
 
-## _TERM_ Message
+## TERM Message
 
 Work to date on HIP has been based on MQTT and a message is any communication
 sent on an MQTT topic. However, this should be considered non-normative and
 there should be no reason why other protocols could be used in place of, or in
 addition to, MQTT.
 
-## _TERM_ Network
+## TERM Network
 
 In the context of HIP, the network refers to the underlying network for the
 messaging protocol. Like MQTT, there is no apparent limitation in terms of what
 network protocols are used.
 
-## _TERM_ Topic
+## TERM Topic
 
 The term topic is taken from the MQTT specification and is used in that context
 throughout this document. Channels and Paths for other messaging protocols
 should be equally applicable and HIP should be fully implementable using any
 alternative to MQTT.
 
-## _TERM_ Handler
+## TERM Handler
 
 Handlers are a combination of configuration settings and executables or scripts
 which can provide additional functionality within a deployment. In our partial
@@ -139,7 +139,7 @@ encoded as part of Handler messages sent to specific devices. These handler
 files could also be executable files, byte-code, Kura bundles or any other type
 of files capable of providing functionality to a device.
 
-## _TERM_ Cloud-side
+## TERM Cloud-side
 
 "Cloud-side" refers to typical SaaS offerings, including remote administration
 tools and user-facing components. The cloud-side has been divided into a number
@@ -161,7 +161,7 @@ a deployment.
 Throughout the document, unless called out at the time, the term Platform refers
 to all cloud-side elements within IOT.
 
-## _TERM_ Path
+## TERM Path
 
 Paths for part of each topic sent and received by a deployment. For example, a
 health message would take the form "h/", where is the unique path for the
@@ -172,7 +172,7 @@ physical device may have multiple sensors and/or controllers attached, with each
 one having its own unique path. This facilitates the movement of roles across
 devices without the need for widespread configuration change.
 
-## _TERM_ Deployment-side
+## TERM Deployment-side
 
 "Deployment-side" refers to the local IOT implementation - for example, our
 smart building or a production line in a factory. Within the Deployment-side,
@@ -180,7 +180,7 @@ generic devices are configured via messages sent from the platform and their
 functionality is determined by their configured roles and associated handler
 files
 
-## _TERM_ Device
+## TERM Device
 
 This is the base implementation for any component within a deployment. A device
 is capable of receiving configuration data from the platform and can transfer
@@ -190,19 +190,19 @@ Health and Error messages to the platform.
 
 The following roles have been defined as part of HIP and are included as part of the specification:
 
-- [Controller](#_role_-controller)
+- [Controller](#role-controller)
 
-- [Aggregator](#_role_-aggregator)
+- [Aggregator](#role-aggregator)
 
-- [Delegator](#_role_-delegator)
+- [Delegator](#role-delegator)
 
-- [Coordinator](#_role_-coordinator)
+- [Coordinator](#role-coordinator)
 
-- [Sensor](#_role_-sensor)
+- [Sensor](#role-sensor)
 
-- [Commander](#_role_-commander)
+- [Commander](#role-commander)
 
-## _ROLE_ controller
+## ROLE controller
 
 Controllers are responsible for interfacing with real world elements of the
 deployment such as heating and lighting controls etc. Handler files are deployed
@@ -213,7 +213,7 @@ use) as well as a list of all commands and their parameters.
 A device can have any number of configured controllers, with each controller
 being assigned its own messaging topic.
 
-## _ROLE_ Aggregator
+## ROLE Aggregator
 
 Aggregators are a key component in HIP and allow the deployment to process data
 locally rather than relying on cloud-side resources. In our selected use case, a
@@ -224,7 +224,7 @@ aggregator which calculates the temperature across the entire floor. Based on
 the configuration and the handler file, raw sensor data can be included or
 omitted from the data transferred cloud-side.
 
-## _ROLE_ Delegator
+## ROLE Delegator
 
 Delegators are organised in a hierarchical structure and pass encapsulated
 messages along to the relevant device or role. A delegator's topic is included
@@ -235,7 +235,7 @@ Similar to Aggregators, delegators are designed to offer maximum scalability
 across a deployment by having commands and other platform messages chained
 across multiple levels.
 
-## _ROLE_ Coordinator
+## ROLE Coordinator
 
 The Coordinator is the only deployment-side device with external connectivity.
 Each deployment has only one active Coordinator at any time. All messages
@@ -243,7 +243,7 @@ between the cloud-side and deployment-side pass through the Coordinator,
 allowing for targeted hardening and security measures and decreasing the
 deployment's attack surface.
 
-## _ROLE_ Sensor
+## ROLE Sensor
 
 Sensors provide real-world data to the deployment and can be integrated with a
 specified device through the use of configuration data from the Platform and an
@@ -252,7 +252,7 @@ associated handler files.
 A device can have any number of configured sensors, with each sensor having its
 own messaging topic.
 
-## _ROLE_ Commander
+## ROLE Commander
 
 A commander provides an offline or local interface for the deployment. Unlike
 the component specified as part of the cloud-side, a Commander can communicate
@@ -348,7 +348,7 @@ Each message below can pass through zero or more aggregators (when sent TO the
 platform from the specified device) or delegators (when sent FROM the platform
 to the specified device)
 
-#### _DEVICE MESSAGE_ On-boarding
+#### DEVICE MESSAGE On-boarding
 
 **Message topic prefix:** "O","o"
 
@@ -393,7 +393,7 @@ the platform.
 Once the device path has been set, the device can be managed and configured from
 the platform.
 
-#### _DEVICE MESSAGE_ Handler
+#### DEVICE MESSAGE Handler
 **Message Topic Prefix:** "N"
 
 Handler messages are used to push new or updated handler files from the Platform
@@ -420,7 +420,7 @@ handler file and save it with the name specified in "id" – this "id" filename
 can then be referenced in configuration messages (e.g. for Aggregator or Sensor
 Operations)
 
-#### _DEVICE MESSAGE_ Config
+#### DEVICE MESSAGE Config
 **Message Topic Prefix:** "C","c"
 
 Configuration messages ("C/") are sent from the platform to update the
@@ -453,7 +453,7 @@ Message: {
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#### _DEVICE MESSAGE_ Health
+#### DEVICE MESSAGE Health
 **Message Topic Prefix:** "H","h"
 
 Health message ("h/"), are periodically sent from devices to the platform and
