@@ -1,4 +1,4 @@
-Introduction
+Eclipse HIP&trade;
 ============
 
 # Contents
@@ -18,8 +18,9 @@ Introduction
 
 - [Messages by Role](#messages-by-role)
 
-- [General Messages](#general-messages)
+- [General Messageing](#general-messaging)
 
+[Publications and Subscriptions by Role](#publications-and-subscriptions-by-role)
 
 [Example Implementation](#example-implementation)
 
@@ -357,6 +358,8 @@ to the specified device)
 Devices can be added to an HIP implementation through the Onboarding message
 topic ("O")
 
+![Sample Implementation](media/onboard.png)
+
 As part of the Onboarding process, a unique identifier and associated paths
 (MQTT topics) are assigned to the device.
 
@@ -566,34 +569,14 @@ and zero or more parameters for the command.
 Each delegator has a unique topic ("B/" contains an error of type 1, "no path to
 device", relating to a delegators on the device on path .
 
-The following table outlines the error types and priority ranges for the
-deployment
 
-| Path  | Error type                                         | Description                                                                |
-|-------|----------------------------------------------------|----------------------------------------------------------------------------|
-| e/a/1 | Aggregation error – data not received              |                                                                            |
-| e/a/2 | Aggregation error – data in incorrect format       |                                                                            |
-| e/a/3 | Aggregation error – received data outside of range |                                                                            |
-|       |                                                    |                                                                            |
-| e/b/1 | delegators Error – no path to device               | The device path has been omitted from the delegators message               |
-|       |                                                    |                                                                            |
-| e/c/1 | Controller Error – invalid command id              | The supplied does not match a command on the controller                    |
-| e/c/2 | Controller Error – required parameter not supplied | One or more required parameters for the specified command was not supplied |
-|       |                                                    |                                                                            |
-| e/r/1 | Coordinator Error-                                 |                                                                            |
-|       |                                                    |                                                                            |
-| e/m/1 | Commander Error -                                  |                                                                            |
-|       |                                                    |                                                                            |
-| e/d/1 | Device Error                                       |                                                                            |
-|       |                                                    |                                                                            |
-| e/s/1 | Sensor Error                                       |                                                                            |
 
 ### Coordinator Messaging
  
 ### Commander Messaging
 
 
-## General Messages
+## General Messaging
 These messages can be sent by more than one role
 
 #### Query Messages: Q Topic
@@ -620,6 +603,89 @@ These messages can be sent by more than one role
 
 "v" paths include a type as the second element and priority as the third
 element(e.g. "v/e/1" is a high priority error)
+The following table outlines possible error types and priority ranges for the
+deployment
+
+| Path  | Error type                                         | Description                                                                |
+|-------|----------------------------------------------------|----------------------------------------------------------------------------|
+| v/e/2/a/1 | Aggregation error - data not received              |                                                                            |
+| v/e/2/a/2 | Aggregation error - data in incorrect format       |                                                                            |
+| v/e/2/a/3 | Aggregation error - received data outside of range |                                                                            |
+|       |                                                    |                                                                            |
+| v/e/1/b/1 | delegators Error - no path to device               | The device path has been omitted from the delegators message               |
+|       |                                                    |                                                                            |
+| v/e/2/c/1 | Controller Error - invalid command id              | The supplied does not match a command on the controller                    |
+| v/e/2/c/2 | Controller Error - required parameter not supplied | One or more required parameters for the specified command was not supplied |
+|       |                                                    |                                                                            |
+| v/e/1/r/1 | Coordinator Error-                                 |                                                                            |
+|       |                                                    |                                                                            |
+| v/e/2/m/1 | Commander Error -                                  |                                                                            |
+|       |                                                    |                                                                            |
+| v/e/2/d/1 | Device Error                                       |                                                                            |
+|       |                                                    |                                                                            |
+| v/e/2/s/1 | Sensor Error                                       |                                                                            |
+#Publications and Subscriptions by Role
+This section lists the MQTT topics subscribed to and published to by each role
+
+- [Device Topics](#device-topics)
+- [Aggregator Topics](#aggregator-topics)
+- [Delegator Topics](#delegator-topics)
+- [Coordinator Topics](#coordinator-topics)
+- [Sensor Topics](#sensor-topics)
+- [Controller Topics](#controller-topics)
+- [Commander Topics](#commander-topics)
+
+## Device Topics
+**Publish on:**
+
+- _"o"_ to onboard this device and request a unique device path from the platform
+
+- _"c/device-path"_ to send the device configuration to the platform
+
+- _"h/device-path"_ to send the "health" metrics to the platform
+
+
+
+**Subscribe to:**
+
+- _"O/device-id"_ to receive the unique device path from the platform after publishing on "o"
+
+- _"N/device-path"_ to revieve handler files from the  platform
+
+- _"C/device-path"_ to receive an updated configuration, or a request for the current configuration, from the platform
+
+
+
+## Aggregator Topics
+**Publish on:**
+
+"o/agg-device-path" to help on-board a new device
+
+"a/agg-path" to forward aggregate data towards the platform (via zero or more aggregators)
+
+**Subscribe to:**
+
+"s/some-device-path" - zero or more sensors, in order to aggregate telemetry data
+"a/some-agg-path" - zero or more aggregators, in order to aggregate telemetry data
+
+## Delegator Topics
+**Publish on:**
+
+"O/some-device-id" to forward a unique device path to device with unique id some-device-id
+
+
+**Subscribe to:**
+
+
+## Coordinator Topics
+- coordinator <-> coordinator topics
+- coordinator <-> coordinator-link topics
+
+## Sensor Topics
+
+## Controller Topics
+
+## Commander Topics
 
 # Example Implementation
 
@@ -710,12 +776,33 @@ The following use cases for HIP are discussed in this part of the specification.
 
 # Message Specifications
 
--   [Device Message](#device-messages)
-
+- [Device Message](#device-messages)
+- [Sensor Messages](#sensor-messages)
+- [Aggregator Messages](#aggregator-messages)
+- [Controller Messages](#controller-messages)
+- [Delegator Messages](#delegator-messages)
+- [Commander Messages](#commander-messages)
+- [General Messages](#general-messages)
 
 ## Device Messages
 
 - [Configuration Messages](#configuration-messages)
+ - [On-boarding Messages](#on-boarding-messages)
+ - [Configuration Messages](#configuration-messages)
+ - [Health Messages](#health-messages)
+ - [Handler Messages](#handler-messages)
+ 
+
+### On-boarding Messages
+
+On-boarding messages allow newly deployed devices to announce themselves to the platform, the platform can then create a unique HIP reference and device path for the device so that it can be managed as part of the deployment.
+
+Onboarding requires the following publications and subscriptions
+
+ - **"o" Topic:** the device publishes on this topic, and all aggregators subscribe to it.
+ - **"o/agg-path" Topic** - the first aggregator installed on each device (with the aggregator role) publishes on their own version of this. The same aggregation path (i.e. chain of aggregators) is used. In other words if an aggregator published on "a/y/3/5/f/p" and this is subscribed to by another aggregator which subsequently publishes on "a/y/4/2", then the "o/y/3/5/f/p" topic is also subscribed to and published on "o/y/4/2"
+ - **"O/agg-device-path" Topic** - the platform publishes on this topic, where agg-device-path is the **device id of the original aggregator**
+ - **"O/dev-id" - the device wishing to be on-boarded subscribes to this topic.
 
 ### Configuration Messages
 
@@ -1007,3 +1094,21 @@ sensor on this topic
 Orphaned devices (e.g. where the platform data has become corrupted and the
 deployment is no longer defined) can recreate the relevant deployment based on
 their configuration file
+
+
+
+### Health Messages
+
+### Handler Messages
+
+## Sensor Messages
+
+## Aggregator Messages
+
+## Controller Messages
+
+## Delegator Messages
+
+## Commander Messages
+
+## General Messages
