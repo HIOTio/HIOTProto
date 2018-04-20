@@ -24,7 +24,7 @@ Eclipse HIP&trade;
 
 [Example Implementation](#example-implementation)
 
-[Use Cases](#use-cases)
+[Use Cases and Examples](#use-cases-and-examples)
 
 [Message Specifications](#message-specifications)
 
@@ -235,6 +235,29 @@ recipient device(s) or role(s).
 Similar to Aggregators, delegators are designed to offer maximum scalability
 across a deployment by having commands and other platform messages chained
 across multiple levels.
+
+As an example of the hierarchical structure of delegators, suppose that the platform tries to send a message to "X/e/w/b/3/2/1"
+
+- The path and message are encapsulated in a coordinator message (discussed later) and forwarded to the relevant deployment
+
+```javascript
+
+{
+	"p":"X/e/w/b/3/2/1",
+	"m":"some message"
+
+}
+```
+
+- On receipt of the message, the coordinator extracts the "p" (path) element and publishes on the second level topic, but with the orignal message type "X", replaced with the delegator topic "B" (i.e. "B/e")
+
+- the delegator subscribed to "B/e" receives the message and publishes on the  third level ("B/e/w")
+
+- this continues until the subscribed path is equal to the second last level (i.e. the relevant delegator is subscribed to "B/e/w/b/3/2")
+
+- this delegator then publishes the "m" element (message) on the original topic ("X/e/w/b/3/2/1")
+
+- the relevant device or role (in this case a controller with the path "X/e/w/b/3/2/1"), receives the message and processes (in this case, executes the relevant command)
 
 ## ROLE Coordinator
 
@@ -611,18 +634,12 @@ deployment
 | v/e/2/a/1 | Aggregation error - data not received              |                                                                            |
 | v/e/2/a/2 | Aggregation error - data in incorrect format       |                                                                            |
 | v/e/2/a/3 | Aggregation error - received data outside of range |                                                                            |
-|       |                                                    |                                                                            |
 | v/e/1/b/1 | delegators Error - no path to device               | The device path has been omitted from the delegators message               |
-|       |                                                    |                                                                            |
 | v/e/2/c/1 | Controller Error - invalid command id              | The supplied does not match a command on the controller                    |
 | v/e/2/c/2 | Controller Error - required parameter not supplied | One or more required parameters for the specified command was not supplied |
-|       |                                                    |                                                                            |
 | v/e/1/r/1 | Coordinator Error-                                 |                                                                            |
-|       |                                                    |                                                                            |
 | v/e/2/m/1 | Commander Error -                                  |                                                                            |
-|       |                                                    |                                                                            |
 | v/e/2/d/1 | Device Error                                       |                                                                            |
-|       |                                                    |                                                                            |
 | v/e/2/s/1 | Sensor Error                                       |                                                                            |
 #Publications and Subscriptions by Role
 This section lists the MQTT topics subscribed to and published to by each role
@@ -665,8 +682,9 @@ This section lists the MQTT topics subscribed to and published to by each role
 
 **Subscribe to:**
 
-"s/some-device-path" - zero or more sensors, in order to aggregate telemetry data
-"a/some-agg-path" - zero or more aggregators, in order to aggregate telemetry data
+**"s/some-device-path"** - zero or more sensors, in order to aggregate telemetry data
+**"a/some-agg-path"** - zero or more aggregators, in order to aggregate telemetry data
+**"O/agg-id"** - to receive on-boarding data (device path) for an enrolling device
 
 ## Delegator Topics
 **Publish on:**
@@ -735,7 +753,7 @@ UI: This is any user facing solution connected to the Platform component.
 All of the roles (and other device attributes) are controlled by device-specific
 configuration files which are managed cloud-side.
 
-# Use cases 
+# Use cases and Examples
 The following use cases for HIP are discussed in this part of the specification. It is expected that the list of use cases included here will be expanded as the protocol specification matures
 
 - [Onboarding a device](#onboarding-a-device)
