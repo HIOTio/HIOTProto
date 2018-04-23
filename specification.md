@@ -532,6 +532,18 @@ Aggregators subscribe to one or more sensors or other aggregators. Each
 implementation of an aggregator has a specific aggregator path (MQTT topic)
 associated with it.
 
+**Aggregator Input**
+
+Aggregators receive data from one or more subscriptions. Subscribed topics can be sensor data (on "s/sensor-path") or aggregator data (on "a/agg-path")
+
+The format of the data in the subscribed topics is determined by the relevant handlers, as is the operation(s) performed on the data
+
+**Aggregator Output**
+
+The aggregator sends processed data on the topic "a/agg-path". This may include the "raw" data from each of the input subscriptions based on the aggregator configuration and the functionality provided by the handler file.
+
+The format of the output data is determined by the aggregator handler file.
+
 #### Aggregation Messages: A topic
 
 
@@ -542,7 +554,7 @@ messsage topic: a/agg-path
 
 ```javascript
 	{
-		'a': aggregated data,
+		'a': aggregated data - structure set by handler,
 		'd': timestamp
 		'r':[raw telemetry data, if included]
 	}
@@ -595,7 +607,29 @@ device", relating to a delegators on the device on path .
 
 
 ### Coordinator Messaging
+#### Coordinator to Platform
+ The coordinator subscribes to all top-level deployment topics (e.g. "a" for aggregator messages, "v" for event messaging etc.) and forwards these to the deployment, encapsulated in the following:
  
+ **topic:** "p/deployment-id" - where "deployment-id" is the unique ID for the deployment, as set by the platform
+ **message:**
+ 
+ ```javascript
+ {
+ 	"t":the topic received by the coordinator (e.g. "a",
+ 	"m": the message received by the coordinator
+ }
+ ```
+#### Platform to deployment
+Messages from the platform are all sent on topic "P/deployment-id" where "deployment-id" is the unique id for the deployment
+
+Each message is structured as follows:
+
+```javascript
+	{
+		"t": the topic to forward the message on,
+		"m": the body of the forwarded message
+	}
+```
 ### Commander Messaging
 
 
