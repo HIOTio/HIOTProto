@@ -26,6 +26,8 @@ Eclipse HIP&trade;
 
 [Use Cases and Examples](#use-cases-and-examples)
 
+[Topic List](#topic-list)
+
 [Message Specifications](#message-specifications)
 
 
@@ -378,12 +380,12 @@ to the specified device)
 
 **Message topic prefix:** "O","o"
 
-Devices can be added to an HIP implementation through the Onboarding message
+Devices can be added to an HIP implementation through the on-boarding message
 topic ("O")
 
-![Sample Implementation](media/onboard.png)
+![Sample Implementation](media/on-board.png)
 
-As part of the Onboarding process, a unique identifier and associated paths
+As part of the on-boarding process, a unique identifier and associated paths
 (MQTT topics) are assigned to the device.
 
 HIP devices which do not have an active configuration, e.g. a new device which
@@ -544,7 +546,7 @@ The aggregator sends processed data on the topic "a/agg-path". This may include 
 
 The format of the output data is determined by the aggregator handler file.
 
-#### Aggregation Messages: A topic
+#### Aggregation Messages: a topic
 
 
 
@@ -689,7 +691,7 @@ This section lists the MQTT topics subscribed to and published to by each role
 ## Device Topics
 **Publish on:**
 
-- _"o"_ to onboard this device and request a unique device path from the platform
+- _"o"_ to on-board this device and request a unique device path from the platform
 
 - _"c/device-path"_ to send the device configuration to the platform
 
@@ -790,7 +792,7 @@ configuration files which are managed cloud-side.
 # Use cases and Examples
 The following use cases for HIP are discussed in this part of the specification. It is expected that the list of use cases included here will be expanded as the protocol specification matures
 
-- [Onboarding a device](#onboarding-a-device)
+- [on-boarding a device](#on-boarding-a-device)
 
 - [Data aggregation](#data-aggregation)
 
@@ -808,7 +810,57 @@ The following use cases for HIP are discussed in this part of the specification.
 
 - [Restoration in the event of a platform failure](#restoration-in-the-event-of-a-platform-failure)
 
-## Onboarding a device
+## on-boarding a device
+
+A new device (i.e. one which hasn't been added to a deployment) will attempt to connect to the local deployment as follows
+
+- [Retrieve its unique Id](#retrieve-unique-id)
+- Subscribe to [the topic "O/<device id from first step>"](#subscribe-to-the-on-boarding-topic)
+- Attempt to [connect to an MQTT](#connect-to-a-designated-broker) broker (or other messaging service) by resolving the hostname "hipmessaging.local"
+- [Publish a message](#publish-a-message) on topic "o" 
+- Use the message received on "O/<device id>" to [set the configuration and initialise assigned roles, subscriptions etc.](#set-the-configuration)
+
+### Retrieve unique Id
+A unique identifier is needed in order to allow a device join a deployment. This can be any unique string for the device (e.g. a MAC address, product serial number etc.)
+
+in the reference implementation, the unique identifier is the only element stored in the configuration file,
+
+```javascript
+"device":{
+	"deviceId":"<uniqueId">
+}
+
+```
+However, this could equally be derived programmatically by the device if desired. 
+
+For practical reasons, it is beneficial if the unique identifier is known in advance and printed/displayed on the body of the physical device.
+
+From a protocol perspective, the only requirement is that the identifier is unique (or even unique within the relevant deployment).
+
+### Connect to a designated broker
+
+While there may be more practical and/or efficient methods of discovering a messaging broker/server on the local network, the HIP protocol proposes that a DNS record is created for "hipmessaging.local" and configured with the address of a known broker/server within the deployment. 
+
+This will allow a new device to resolve the address of the broker and connect to it. There must be a path (via aggregators) from the on-boarding topic "o" back to the deployment in order for the device to on-board successfully.
+
+### Subscribe to the on-boarding topic
+The new device configuration will be published to the device on the device's unique on-boarding topic (i.e. "O/<deviceId>"). Prior to attempting to on-board, the device must subscribe to this topic. 
+
+### Publish a message
+Once connected to the broker and subscribed to the on-boarding topic, the device sends a message on topic "o" with the following contents:
+
+```javascript
+
+{
+	"deviceId":"<the unique identifier of the device>"
+}
+
+```
+ 
+ This message should be routed to the platform via zero or more aggregators and the deployment coordinator
+
+### Set the configuration
+
 
 ## Data aggregation
 
@@ -825,6 +877,33 @@ The following use cases for HIP are discussed in this part of the specification.
 ## "Balancing" a deployment
 
 ## Restoration in the event of a platform failure
+
+# Topic list
+The following topic categories are included with HIP and may contain the following elements
+- **<deviceId>**: a unique identifier for a device
+- **<path>**: a unique path for a device or role
+- **<deploymentId>**: a unique identifier for the deployment
+
+
+From devices and roles (excluding Commander role):
+- **"o"** : the on-boarding topic for new devices
+- **"c/<path>"** : send the active configuration from the device to the platform
+- **"h/<path>"** : send the "health" or status details from the device to the platform
+- **"s/<path>"** : send sensor telemetry data
+- **"a/<path>"** : send aggregator output to the platform (via zero or more additional aggregators)
+- **"r/<path>"** : send a response to a message from the platform (not currently implemented in the reference implementation)
+- **"v/<path>"** : send an event (e.g. error) message from a device or role
+- **"d/<deploymentId>"**: encapsulate the above topics into a coordinator message and send to the platform
+- "z": coordinator-coordinator messaging (not yet implemented)
+
+To devices:
+- **"O/<deviceId>"**: send configuration data to an on-boarding device
+- **"N/<path>"**: send a handler to a device
+- **"C/<path>"**: send or request configuration data for a device
+- **"H/<path>"**: request health stats from a device
+- **"S/<path>"**: query the data from sensor at <path>
+- **"P/<deploymentId>"**: the above messages, encapsulated in a coordinator messages 
+- "Z" coordinator-coordinator messages from the active coordinator
 
 # Message Specifications
 
@@ -849,7 +928,7 @@ The following use cases for HIP are discussed in this part of the specification.
 
 On-boarding messages allow newly deployed devices to announce themselves to the platform, the platform can then create a unique HIP reference and device path for the device so that it can be managed as part of the deployment.
 
-Onboarding requires the following publications and subscriptions
+on-boarding requires the following publications and subscriptions
 
  - **"o" Topic:** the device publishes on this topic, and all aggregators subscribe to it.
  - **"o/agg-path" Topic** - the first aggregator installed on each device (with the aggregator role) publishes on their own version of this. The same aggregation path (i.e. chain of aggregators) is used. In other words if an aggregator published on "a/y/3/5/f/p" and this is subscribed to by another aggregator which subsequently publishes on "a/y/4/2", then the "o/y/3/5/f/p" topic is also subscribed to and published on "o/y/4/2"
